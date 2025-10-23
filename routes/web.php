@@ -16,10 +16,6 @@ Route::get('/qrcode', function () {
     return view('qrcode');
 });
 
-Route::get('/dashboard', function () {
-    return view('layouts.index');
-});
-
 // ================= Routes Invitées (non connectées) =================
 Route::middleware('guest')->group(function () {
     // Connexion
@@ -42,18 +38,18 @@ Route::middleware('guest')->group(function () {
 
 // ================= Routes Authentifiées =================
 Route::middleware('auth')->group(function () {
-
     // Déconnexion
     Route::post('/logout', [ERESAuthController::class, 'logout'])->name('logout');
 
-    // Page du formulaire d’anomalie
-    Route::get('/formulaire', [AnomalieController::class, 'index'])->name('anomalie.index');
+    // Page du formulaire d’anomalie (accessible uniquement aux utilisateurs 'user')
+    Route::middleware('role:user')->group(function () {
+        Route::get('/formulaire', [AnomalieController::class, 'index'])->name('anomalie.index');
+        Route::post('/formulaire', [AnomalieController::class, 'store'])->name('anomalie.store');
+    });
 
-    // Envoi du formulaire d’anomalie
-    Route::post('/formulaire', [AnomalieController::class, 'store'])->name('anomalie.store');
-
-    // Tableau de bord
-
-    // Liste des anomalies (pour affichage dans le dashboard)
-    Route::get('/anomalies/list', [AnomalieController::class, 'getAnomalies'])->name('anomalies.list');
+    // Tableau de bord (accessible uniquement aux administrateurs 'admin')
+    Route::middleware('role:admin')->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/anomalies/list', [AnomalieController::class, 'getAnomalies'])->name('anomalies.list');
+    });
 });

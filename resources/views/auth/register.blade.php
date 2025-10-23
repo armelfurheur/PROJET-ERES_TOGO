@@ -56,6 +56,13 @@
                 </select>
             </div>
 
+            <!-- Code Admin (facultatif) -->
+            <div>
+                <label for="admin_code" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Code Admin (facultatif)</label>
+                <input type="text" name="admin_code" id="admin_code" placeholder="Entrez le code admin si applicable"
+                    class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
+            </div>
+
             <!-- Mot de passe -->
             <div>
                 <label for="password" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Mot de passe</label>
@@ -64,12 +71,11 @@
                         class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
                     <button type="button" id="togglePassword"
                         class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none">
-                      <!--  <svg id="eyeClosed1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <svg id="eyeClosed1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
-                        </svg>-->
-                        <svg id="eyeOpen1" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 hidden">
+                        </svg>
+                        <svg id="eyeOpen1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 hidden">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -87,13 +93,11 @@
                         class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
                     <button type="button" id="toggleConfirm"
                         class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none">
-                    <!--    <svg id="eyeClosed2" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <svg id="eyeClosed2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
-                        </svg>-->
-                        <svg id="eyeOpen2" xmlns="http://www.w3.org/2000/svg" fill="none"
-                            viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 hidden">
+                        </svg>
+                        <svg id="eyeOpen2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 hidden">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
                             <path stroke-linecap="round" stroke-linejoin="round"
@@ -123,13 +127,26 @@
 <!-- jQuery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 
-<!-- JS pour l’affichage des mots de passe -->
+<!-- JS pour l’affichage des mots de passe et soumission AJAX -->
 <script>
+    // Configurer le jeton CSRF pour toutes les requêtes AJAX
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    // Gestion de l'affichage des mots de passe
     function setupPasswordToggle(inputId, openId, closedId, buttonId) {
         const input = document.getElementById(inputId);
         const eyeOpen = document.getElementById(openId);
         const eyeClosed = document.getElementById(closedId);
         const button = document.getElementById(buttonId);
+
+        if (!input || !eyeOpen || !eyeClosed || !button) {
+            console.error('Un ou plusieurs éléments DOM manquants pour :', inputId);
+            return;
+        }
 
         button.addEventListener('click', () => {
             const isPassword = input.type === 'password';
@@ -155,11 +172,22 @@
                 url: "{{ route('register') }}",
                 type: "POST",
                 data: $(this).serialize(),
-                success: function () {
-                    window.location.href = "/";
+                success: function (response) {
+                    if (response.success) {
+                        alert(response.message); // Affiche "Inscription réussie !"
+                        window.location.href = response.redirect || "/formulaire"; // Redirige selon le rôle
+                    } else {
+                        alert("Erreur : " + (response.message || "Une erreur inconnue est survenue."));
+                    }
                 },
-                error: function () {
-                    alert("Erreur : Vérifiez vos données.");
+                error: function (xhr) {
+                    let errorMessage = "Erreur : Vérifiez vos données.";
+                    if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                        errorMessage = Object.values(xhr.responseJSON.errors).flat().join("\n");
+                    } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    alert(errorMessage);
                 },
                 complete: function () {
                     $('#spinnerRegister').addClass('hidden');

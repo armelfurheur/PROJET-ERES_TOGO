@@ -30,8 +30,5 @@ class Anomalie extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function proposals()
-    {
-        return $this->hasMany(Proposal::class, 'anomaly_id', 'id');
-    }
+  
 }

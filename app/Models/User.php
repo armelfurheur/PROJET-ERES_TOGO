@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// Assurez-vous d'utiliser toutes les façades nécessaires
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -15,7 +14,6 @@ class User extends Authenticatable
 
     /**
      * Les attributs qui peuvent être assignés en masse.
-     * Inclut 'department' que nous utilisons dans le contrôleur d'inscription.
      *
      * @var array<int, string>
      */
@@ -23,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'department', // Ajouté pour l'inscription
+        'department',
+        'role', // Ajouté pour gérer les rôles (user ou admin)
     ];
 
     /**
@@ -43,10 +42,5 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        // ⭐ CORRECTION CRITIQUE : 
-        // L'entrée 'password' => 'hashed' a été supprimée ou commentée.
-        // La version Laravel 9.x que vous utilisez ne reconnaît pas ce cast.
-        // Le hachage est géré par la façade Hash et le système d'authentification.
-        // 'password' => 'hashed', 
     ];
 }

@@ -71,10 +71,15 @@
     </div>
 </div>
 
-<!-- jQuery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 <script>
 $(document).ready(function () {
+    // Configurer le jeton CSRF pour toutes les requêtes AJAX
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
     $('#forgotForm').on('submit', function (e) {
         e.preventDefault();
 
@@ -86,14 +91,28 @@ $(document).ready(function () {
             url: "{{ route('password.email') }}",
             type: "POST",
             data: $(this).serialize(),
-            success: function () {
-                alert("Lien de réinitialisation envoyé avec succès.");
-                location.reload();
+            success: function (response) {
+                if (response.success) {
+                    toastr.success(response.message, 'Succès', { timeOut: 3000 });
+                    setTimeout(function () {
+                        location.reload(); // Recharge la page pour afficher le message de session
+                    }, 3000);
+                } else {
+                    toastr.error(response.message || 'Une erreur inconnue est survenue.', 'Erreur');
+                }
             },
-            error: function () {
-                alert("Erreur : Vérifiez votre adresse e-mail.");
-            },
-            complete: function () {
+            error: function (xhr) {
+                let errorMessage = 'Erreur : Vérifiez votre adresse e-mail.';
+                if (xhr.status === 419) {
+                    errorMessage = 'Erreur : La session a expiré. Veuillez recharger la page et réessayer.';
+                } else if (xhr.status === 404 && xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message; // Ex. "Aucun utilisateur trouvé avec cet email."
+                } else if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                    errorMessage = Object.values(xhr.responseJSON.errors).flat().join("\n");
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                toastr.error(errorMessage, 'Erreur');
                 $('#spinnerForgot').addClass('hidden');
                 $('#btnTextForgot').text("Envoyer le lien de réinitialisation");
                 $('#forgotBtn').attr('disabled', false);

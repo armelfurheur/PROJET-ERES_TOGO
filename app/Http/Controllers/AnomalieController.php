@@ -19,31 +19,35 @@ class AnomalieController extends Controller
      * Enregistre une anomalie dans la base de données,
      * puis affiche le tableau de bord avec les données mises à jour.
      */
-  public function store(Request $request)
-{
-    $validated = $request->validate([
-        'rapporte_par' => 'required|string|max:255',
-        'departement' => 'required|string|max:255',
-        'localisation' => 'required|string|max:255',
-        'statut' => 'required|string',
-        'description' => 'required|string',
-        'action' => 'required|string',
-        'datetime' => 'required|date',
-        'preuve' => 'nullable|image|max:2048',
-    ]);
+ public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'rapporte_par' => 'required|string|max:255',
+            'departement' => 'required|string|max:255',
+            'localisation' => 'required|string|max:255',
+            'statut' => 'required|string',
+            'description' => 'required|string',
+            'action' => 'required|string',
+            'datetime' => 'required|date',
+            'preuve' => 'nullable|image|max:2048',
+        ]);
 
-    if ($request->hasFile('preuve')) {
-        $path = $request->file('preuve')->store('preuves', 'public');
-        $validated['preuve'] = $path;
+        if ($request->hasFile('preuve')) {
+            // CORRECTION: Assure que le fichier est stocké dans le sous-dossier 'preuves'
+            // du disque 'public', ce qui crée le chemin : storage/app/public/preuves/...
+            $path = $request->file('preuve')->store('preuves', 'public');
+            
+            // Le chemin stocké en base de données sera 'preuves/nomdufichier.jpg'
+            // ce qui est nécessaire pour l'accès via asset('storage/preuves/...')
+            $validated['preuve'] = $path;
+        }
+
+        Anomalie::create($validated);
+
+        // Redirection vers le formulaire avec message de succès
+        return redirect()->route('anomalie.index')
+                         ->with('success', 'Anomalie enregistrée avec succès.');
     }
-
-    Anomalie::create($validated);
-
-    // Redirection vers le formulaire avec message de succès
-    return redirect()->route('anomalie.index')
-                     ->with('success', 'Anomalie enregistrée avec succès.');
-}
-
     /**
      * Affiche le tableau de bord avec toutes les anomalies.
      */

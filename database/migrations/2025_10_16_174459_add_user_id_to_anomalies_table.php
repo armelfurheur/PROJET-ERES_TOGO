@@ -27,6 +27,6 @@ return new class extends Migration
     {
         Schema::table('anomalies', function (Blueprint $table) {
             //
-        });
+        }); 
     }
 };

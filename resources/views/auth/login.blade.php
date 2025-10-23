@@ -21,55 +21,38 @@
             </div>
 
             <div class="relative">
-    <label for="password" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">
-        Mot de passe
-    </label>
+                <label for="password" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">
+                    Mot de passe
+                </label>
 
-    <!-- Champ mot de passe avec œil à l'intérieur -->
-    <div class="relative">
-        <input type="password" name="password" id="password" required
-            placeholder="Entrer votre mot de passe"
-            class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
+                <!-- Champ mot de passe avec œil à l'intérieur -->
+                <div class="relative">
+                    <input type="password" name="password" id="password" required
+                        placeholder="Entrer votre mot de passe"
+                        class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
 
-        <!-- Bouton de l’œil à droite dans l'input -->
-        <button type="button" id="togglePassword"
-            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none">
-            
-            <!-- Icône œil fermé 
-            <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
-            </svg>-->
-
-            <!-- Icône œil ouvert (cachée au départ) -->
-            <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" fill="none"
-                viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
-                class="w-5 h-5 hidden">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-        </button>
-    </div>
-</div>
-
-<script>
-    const passwordInput = document.getElementById('password');
-    const toggleButton = document.getElementById('togglePassword');
-    const eyeOpen = document.getElementById('eyeOpen');
-    const eyeClosed = document.getElementById('eyeClosed');
-
-    toggleButton.addEventListener('click', () => {
-        const isPassword = passwordInput.type === 'password';
-        passwordInput.type = isPassword ? 'text' : 'password';
-        eyeOpen.classList.toggle('hidden', !isPassword);
-        eyeClosed.classList.toggle('hidden', isPassword);
-    });
-</script>
-
+                    <!-- Bouton de l’œil à droite dans l'input -->
+                    <button type="button" id="togglePassword"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none">
+                        <!-- Icône œil ouvert (cachée au départ) -->
+                        <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
+                            class="w-5 h-5 hidden">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <!-- Icône œil fermé -->
+                        <svg id="eyeClosed" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"
+                            class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
 
             <button type="submit" id="loginBtn"
                 class="w-full bg-green-700 text-white py-2.5 md:py-3 rounded-lg font-bold shadow-md hover:bg-green-800 transition transform hover:scale-[1.01] flex justify-center items-center">
@@ -147,10 +130,10 @@ $(document).ready(function () {
                 if (response.success) {
                     toastr.success('Connexion réussie 🎉<br>Bienvenue sur ERES-TOGO !', 'Succès');
                     setTimeout(() => {
-                        window.location.href = "/formulaire";
+                        window.location.href = response.redirect;
                     }, 2000);
                 } else {
-                        toastr.error(response.message || 'Erreur de connexion', 'Erreur');
+                    toastr.error(response.message || 'Erreur de connexion', 'Erreur');
                 }
             },
             error: function (xhr) {
@@ -166,6 +149,19 @@ $(document).ready(function () {
                 $('#loginBtn').attr('disabled', false);
             }
         });
+    });
+
+    // Gestion de l'affichage du mot de passe
+    const passwordInput = document.getElementById('password');
+    const toggleButton = document.getElementById('togglePassword');
+    const eyeOpen = document.getElementById('eyeOpen');
+    const eyeClosed = document.getElementById('eyeClosed');
+
+    toggleButton.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        eyeOpen.classList.toggle('hidden', !isPassword);
+        eyeClosed.classList.toggle('hidden', isPassword);
     });
 });
 </script>
