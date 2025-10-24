@@ -52,4 +52,22 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/anomalies/list', [AnomalieController::class, 'getAnomalies'])->name('anomalies.list');
     });
+
+    Route::middleware('auth')->get('/api/user-info', function () {
+    return response()->json([
+        'name' => Auth::user()->name,
+        'email' => Auth::user()->email,
+        'initials' => strtoupper(substr(Auth::user()->name, 0, 2))
+    ]);
+});
+
+
+// Routes existantes
+Route::get('/formulaire', [AnomalieController::class, 'index'])->name('anomalie.index');
+Route::post('/anomalie/store', [AnomalieController::class, 'store'])->name('anomalie.store');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+// Nouvelles routes API
+Route::get('/api/anomalies', [AnomalieController::class, 'getAnomalies'])->name('api.anomalies');
+Route::get('/api/anomalies/{id}', [AnomalieController::class, 'getAnomalie'])->name('api.anomalie');
 });

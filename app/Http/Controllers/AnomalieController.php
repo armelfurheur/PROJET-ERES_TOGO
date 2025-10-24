@@ -8,7 +8,7 @@ use App\Models\Anomalie;
 class AnomalieController extends Controller
 {
     /**
-     * Affiche le formulaire d’enregistrement d’une anomalie.
+     * Affiche le formulaire d'enregistrement d'une anomalie.
      */
     public function index()
     {
@@ -19,7 +19,7 @@ class AnomalieController extends Controller
      * Enregistre une anomalie dans la base de données,
      * puis affiche le tableau de bord avec les données mises à jour.
      */
- public function store(Request $request)
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'rapporte_par' => 'required|string|max:255',
@@ -33,21 +33,26 @@ class AnomalieController extends Controller
         ]);
 
         if ($request->hasFile('preuve')) {
-            // CORRECTION: Assure que le fichier est stocké dans le sous-dossier 'preuves'
-            // du disque 'public', ce qui crée le chemin : storage/app/public/preuves/...
             $path = $request->file('preuve')->store('preuves', 'public');
-            
-            // Le chemin stocké en base de données sera 'preuves/nomdufichier.jpg'
-            // ce qui est nécessaire pour l'accès via asset('storage/preuves/...')
             $validated['preuve'] = $path;
         }
 
-        Anomalie::create($validated);
+        $anomalie = Anomalie::create($validated);
 
-        // Redirection vers le formulaire avec message de succès
+        // Réponse JSON pour les requêtes AJAX
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'anomalie' => $anomalie,
+                'message' => 'Anomalie enregistrée avec succès.'
+            ]);
+        }
+
+        // Redirection normale
         return redirect()->route('anomalie.index')
                          ->with('success', 'Anomalie enregistrée avec succès.');
     }
+
     /**
      * Affiche le tableau de bord avec toutes les anomalies.
      */
@@ -55,5 +60,29 @@ class AnomalieController extends Controller
     {
         $anomalies = Anomalie::orderBy('created_at', 'desc')->get();
         return view('layouts.index', compact('anomalies'));
+    }
+
+    /**
+     * API pour récupérer les anomalies (pour le dashboard)
+     */
+    public function getAnomalies()
+    {
+        $anomalies = Anomalie::orderBy('created_at', 'desc')->get();
+        
+        return response()->json([
+            'anomalies' => $anomalies
+        ]);
+    }
+
+    /**
+     * API pour récupérer une anomalie spécifique
+     */
+    public function getAnomalie($id)
+    {
+        $anomalie = Anomalie::findOrFail($id);
+        
+        return response()->json([
+            'anomalie' => $anomalie
+        ]);
     }
 }

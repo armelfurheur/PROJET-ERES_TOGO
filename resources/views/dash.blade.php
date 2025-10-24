@@ -936,59 +936,7 @@
             store.saveParams(params);
         }
 
-        // Données d'exemple
-        if (anomalies.length === 0) {
-            const now = new Date();
-            anomalies = [
-                {
-                    id: generateId('anom'),
-                    rapporte_par: 'Jean Dupont',
-                    departement: 'technique',
-                    localisation: 'Zone A - Entrée',
-                    statut_anomalie: 'arret',
-                    description: 'Fuite d\'huile importante. Risque de glissade élevé.',
-                    action: 'Zone balisée. Maintenance alertée.',
-                    preuve_url: '',
-                    datetime: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 10, 30).toISOString(),
-                    status: 'Ouverte',
-                    read: false,
-                    created_at: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 10, 30).toISOString(),
-                    proposals: []
-                },
-                {
-                    id: generateId('anom'),
-                    rapporte_par: 'Marie Koffi',
-                    departement: 'logistique',
-                    localisation: 'Entrepôt B - Niveau 2',
-                    statut_anomalie: 'precaution',
-                    description: 'Éclairage défectueux dans le couloir.',
-                    action: 'Signalé au service technique.',
-                    preuve_url: '',
-                    datetime: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 14, 15).toISOString(),
-                    status: 'Ouverte',
-                    read: false,
-                    created_at: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 14, 15).toISOString(),
-                    proposals: []
-                },
-                {
-                    id: generateId('anom'),
-                    rapporte_par: 'Paul Mensah',
-                    departement: 'commercial',
-                    localisation: 'Atelier mécanique',
-                    statut_anomalie: 'continuer',
-                    description: 'Extincteur à recharger (périmé).',
-                    action: 'Commande passée.',
-                    preuve_url: '',
-                    datetime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0).toISOString(),
-                    status: 'Ouverte',
-                    read: false,
-                    created_at: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0).toISOString(),
-                    proposals: []
-                }
-            ];
-            store.saveAnomalies(anomalies);
-        }
-
+      
         // ========== TRASH SYSTEM ==========
         const trashKey = 'eres_trash_v3';
 
@@ -2396,21 +2344,151 @@ Responsable HSE - ERES-TOGO`;
         // ========== MODAL CLOSE ==========
         document.getElementById('closeModal').addEventListener('click', closeModal);
 
-        // ========== INIT ==========
-        document.addEventListener('DOMContentLoaded', function() {
-            loadUserData();
-            setMinDateForProposals();
+ // ========== INITIALISATION ==========
+document.addEventListener('DOMContentLoaded', function() {
+    loadUserData();
+    setMinDateForProposals();
+    fetchAnomalies(); // Charge les données depuis la base de données
+    updateNotifications();
+    
+    // Nettoyage automatique de la corbeille
+    autoCleanTrash();
+    
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    
+    // Activer la vue dashboard par défaut
+    document.querySelector('[data-view="dashboard"]').click();
+});
+        
+
+        // ========== FETCH ANOMALIES FROM DATABASE ==========
+async function fetchAnomalies() {
+    try {
+        const response = await fetch('{{ route('api.anomalies') }}');
+        const data = await response.json();
+        
+        if (data.anomalies) {
+            // Convertir les données MySQL en format compatible avec le dashboard
+            anomalies = data.anomalies.map(anomalie => ({
+                id: 'anom_' + anomalie.id,
+                rapporte_par: anomalie.rapporte_par,
+                departement: anomalie.departement,
+                localisation: anomalie.localisation,
+                statut_anomalie: anomalie.statut, // 'statut' dans MySQL devient 'statut_anomalie' dans JS
+                description: anomalie.description,
+                action: anomalie.action,
+                preuve_url: anomalie.preuve ? '/storage/' + anomalie.preuve : null,
+                datetime: anomalie.datetime,
+                status: anomalie.status || 'Ouverte', // Valeur par défaut
+                read: anomalie.read ? true : false,
+                has_proposal: anomalie.has_proposal ? true : false,
+                proposals: anomalie.proposals || [], // Si vous avez des propositions
+                created_at: anomalie.created_at,
+                updated_at: anomalie.updated_at
+            }));
+            
+            // Sauvegarder dans localStorage pour la session
+            store.saveAnomalies(anomalies);
+            
+            // Re-rendre les vues
+            renderAnomalies();
             renderDashboard();
             updateNotifications();
-            
-            // Nettoyage automatique de la corbeille au chargement
-            autoCleanTrash();
-            
-            document.getElementById('currentYear').textContent = new Date().getFullYear();
-            
-            document.querySelector('[data-view="dashboard"]').click();
-        });
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des anomalies:', error);
+        // En cas d'erreur, utiliser les données du localStorage
+        const stored = store.load();
+        anomalies = stored.anomalies;
+    }
+}
+
+// ========== SYNC DATA ==========
+function syncData() {
+    fetchAnomalies();
+}
+
+// ========== MODIFIER LA FONCTION viewAnomalyDetails ==========
+async function viewAnomalyDetails(id) {
+    try {
+        // Extraire l'ID numérique de l'ID formaté
+        const numericId = id.replace('anom_', '');
+        const response = await fetch(`/api/anomalies/${numericId}`);
+        const data = await response.json();
         
+        const anomaly = data.anomalie;
+        
+        // Marquer comme lu dans la base de données
+        if (!anomaly.read) {
+            // Vous devrez ajouter une méthode pour marquer comme lu dans votre contrôleur
+            await fetch(`/api/anomalies/${numericId}/mark-read`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+        
+        // Le reste du code existant pour afficher les détails...
+        const priorityText = anomaly.statut === 'arret' ? '🚨 Arrêt Imminent' : 
+                            anomaly.statut === 'precaution' ? '⚠️ Précaution' : '🟢 Continuer';
+        const priorityClass = anomaly.statut === 'arret' ? 'badge-arret' : 
+                            anomaly.statut === 'precaution' ? 'badge-precaution' : 'badge-continuer';
+        
+        // Afficher les détails dans la modal...
+        document.getElementById('modalBody').innerHTML = `
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <label>ID Anomalie</label>
+                    <div class="value">${anomaly.id}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Date & Heure</label>
+                    <div class="value">${formatDateTime(anomaly.datetime)}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Rapporté par</label>
+                    <div class="value">${anomaly.rapporte_par}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Département</label>
+                    <div class="value">${anomaly.departement}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Localisation</label>
+                    <div class="value">${anomaly.localisation}</div>
+                </div>
+                <div class="detail-item">
+                    <label>Gravité</label>
+                    <div class="value"><span class="badge ${priorityClass}">${priorityText}</span></div>
+                </div>
+            </div>
+            
+            <div class="detail-full">
+                <label>Description</label>
+                <div class="value">${anomaly.description}</div>
+            </div>
+            
+            <div class="detail-full">
+                <label>Action immédiate</label>
+                <div class="value">${anomaly.action}</div>
+            </div>
+            
+            ${anomaly.preuve ? `<div class="detail-full"><label>Preuve</label><img src="/storage/${anomaly.preuve}" class="proof-image"></div>` : '<div class="detail-full"><label>Preuve</label><div class="value">Aucune preuve</div></div>'}
+            
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeModal()">Fermer</button>
+            </div>
+        `;
+        
+        document.getElementById('anomalyModal').classList.add('active');
+        
+    } catch (error) {
+        console.error('Erreur lors du chargement des détails:', error);
+        showToast('Erreur lors du chargement des détails', 'error');
+    }
+}
     </script>
 </body>
 </html>

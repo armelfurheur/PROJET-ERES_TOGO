@@ -93,26 +93,6 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', ()=> {
-    // Animation bienvenue
-    const msg = document.getElementById('bienvenue-message');
-    setTimeout(()=> msg.classList.remove('opacity-0','translate-y-4','invisible'), 300);
-
-    // Prévisualisation image
-    window.previewImage = function(event) {
-        const preview = document.getElementById('image-preview');
-        const container = document.getElementById('image-preview-container');
-        if (event.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.src = e.target.result;
-                container.classList.remove('hidden');
-            };
-            reader.readAsDataURL(event.target.files[0]);
-        } else container.classList.add('hidden');
-    }
-
-});
 document.getElementById('anomalie-form').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -121,37 +101,44 @@ document.getElementById('anomalie-form').addEventListener('submit', function(e) 
     fetch('{{ route('anomalie.store') }}', {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'X-Requested-With': 'XMLHttpRequest' // Important pour Laravel
         },
         body: formData
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('✅ Anomalie enregistrée avec succès !');
+            alert('✅ Anomalie enregistrée  & rapporté au HSE avec succès !');
             this.reset();
-            // Mettre à jour le tableau du dashboard s’il est ouvert
+            
+            // Réinitialiser la prévisualisation d'image
+            const container = document.getElementById('image-preview-container');
+            const preview = document.getElementById('image-preview');
+            container.classList.add('hidden');
+            preview.src = '#';
+            
+            // Déclencher l'événement pour mettre à jour le dashboard
             window.dispatchEvent(new Event('anomalieAjoutee'));
+            
+            // Optionnel: Rediriger vers le dashboard après 2 secondes
+            setTimeout(() => {
+                window.location.href = '{{ route('dashboard') }}';
+            }, 2000);
         } else {
             alert('❌ Erreur lors de la soumission.');
         }
     })
-    .catch(error => console.error(error));
+    .catch(error => {
+        console.error('Error:', error);
+        alert('❌ Erreur lors de la soumission.');
+    });
 });
 
-// Quand une anomalie est ajoutée, on recharge la table du dashboard
+// Écouter l'événement pour mettre à jour le dashboard
 window.addEventListener('anomalieAjoutee', () => {
-    if (typeof fetchAnomalies === 'function') fetchAnomalies();
-});
-@if(session('success'))
-    <div class="alert alert-success">
-        {{ session('success') }}
-    </div>
-@endif
-document.addEventListener('DOMContentLoaded', function() {
-    const alertBox = document.querySelector('.alert-success');
-    if(alertBox) {
-        setTimeout(() => alertBox.remove(), 3000);
+    if (typeof fetchAnomalies === 'function') {
+        fetchAnomalies();
     }
 });
 </script>
