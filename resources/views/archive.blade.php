@@ -1,5 +1,8 @@
 
-<!-- Archive View -->
+
+@extends('dash')
+@section('content')
+
 <div id="view-archive" class="hse-view hidden">
     <div class="page-header">
         <h1>📦 Archives</h1>
@@ -36,4 +39,4 @@
         </div>
     </div>
 </div>
-
+@endsection
