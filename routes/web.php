@@ -5,6 +5,7 @@ use App\Http\Controllers\ERESAuthController;
 use App\Http\Controllers\AnomalieController;
 use App\Http\Controllers\FormulaireController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProposalController;
 
 // ================= Page de Connexion =================
 Route::get('/', function () {
@@ -69,5 +70,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 
 // Nouvelles routes API
 Route::get('/api/anomalies', [AnomalieController::class, 'getAnomalies'])->name('api.anomalies');
-Route::get('/api/anomalies/{id}', [AnomalieController::class, 'getAnomalie'])->name('api.anomalie');
+Route::get('/api/anomalies/{id}', [AnomalieController::class, 'getAnomalie'])->name('api.anomalie.show');
+
+Route::post('/proposals', [ProposalController::class, 'store'])->name('proposals.store');
 });

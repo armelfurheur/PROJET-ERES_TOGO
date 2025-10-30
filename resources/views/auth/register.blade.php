@@ -3,7 +3,6 @@
 @section('content')
 <div class="flex items-center justify-center min-h-screen bg-gray-50 px-4">
     <div class="w-full max-w-md bg-white rounded-xl shadow-2xl p-2 border border-gray-0">
-        
         <!-- Logo + Titre -->
         <div class="text-center mb-6">
             <img src="{{ asset('img/ERES.jpg') }}" alt="Logo de l'application" 
@@ -53,13 +52,15 @@
                     <option value="Logistique" {{ old('department') == 'Logistique' ? 'selected' : '' }}>Logistique</option>
                     <option value="Administratif" {{ old('department') == 'Administratif' ? 'selected' : '' }}>Administratif</option>
                     <option value="Commercial" {{ old('department') == 'Commercial' ? 'selected' : '' }}>Commercial</option>
+                    <option value="Achats" {{ old('department') == 'Achats' ? 'selected' : '' }}>Achats</option>
+
                 </select>
             </div>
 
             <!-- Code Admin (facultatif) -->
             <div>
                 <label for="admin_code" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Code Admin (facultatif)</label>
-                <input type="text" name="admin_code" id="admin_code" placeholder="Entrez le code admin si applicable"
+                <input type="text" name="admin_code" id="admin_code" autocomplete="off" placeholder="Entrez le code admin si applicable"
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
             </div>
 
@@ -69,17 +70,17 @@
                 <div class="relative">
                     <input type="password" name="password" id="password" required placeholder="Mot de passe"
                         class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
-                    <button type="button" id="togglePassword"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none">
-                        <svg id="eyeClosed1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
-                        </svg>
-                        <svg id="eyeOpen1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 hidden">
+                    <button type="button" class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none"
+                            data-target="password">
+                        <svg class="eye-open hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
                         </svg>
                     </button>
                 </div>
@@ -91,17 +92,17 @@
                 <div class="relative">
                     <input type="password" name="password_confirmation" id="password_confirmation" required placeholder="Confirmer"
                         class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
-                    <button type="button" id="toggleConfirm"
-                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none">
-                        <svg id="eyeClosed2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
-                        </svg>
-                        <svg id="eyeOpen2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5 hidden">
+                    <button type="button" class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none"
+                            data-target="password_confirmation">
+                        <svg class="eye-open hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
                         </svg>
                     </button>
                 </div>
@@ -127,7 +128,7 @@
 <!-- jQuery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
 
-<!-- JS pour l’affichage des mots de passe et soumission AJAX -->
+<!-- JS pour la soumission AJAX -->
 <script>
     // Configurer le jeton CSRF pour toutes les requêtes AJAX
     $.ajaxSetup({
@@ -137,30 +138,19 @@
     });
 
     // Gestion de l'affichage des mots de passe
-    function setupPasswordToggle(inputId, openId, closedId, buttonId) {
-        const input = document.getElementById(inputId);
-        const eyeOpen = document.getElementById(openId);
-        const eyeClosed = document.getElementById(closedId);
-        const button = document.getElementById(buttonId);
-
-        if (!input || !eyeOpen || !eyeClosed || !button) {
-            console.error('Un ou plusieurs éléments DOM manquants pour :', inputId);
-            return;
-        }
-
-        button.addEventListener('click', () => {
-            const isPassword = input.type === 'password';
-            input.type = isPassword ? 'text' : 'password';
-            eyeOpen.classList.toggle('hidden', !isPassword);
-            eyeClosed.classList.toggle('hidden', isPassword);
-        });
-    }
-
-    setupPasswordToggle('password', 'eyeOpen1', 'eyeClosed1', 'togglePassword');
-    setupPasswordToggle('password_confirmation', 'eyeOpen2', 'eyeClosed2', 'toggleConfirm');
-
-    // Script d’inscription AJAX
     $(document).ready(function () {
+        $('.toggle-password').on('click', function () {
+            const targetId = $(this).data('target');
+            const input = $('#' + targetId);
+            const eyeOpen = $(this).find('.eye-open');
+            const eyeClosed = $(this).find('.eye-closed');
+
+            const isPassword = input.attr('type') === 'password';
+            input.attr('type', isPassword ? 'text' : 'password');
+            eyeOpen.toggleClass('hidden', !isPassword);
+            eyeClosed.toggleClass('hidden', isPassword);
+        });
+
         $('#registerForm').on('submit', function (e) {
             e.preventDefault();
 
