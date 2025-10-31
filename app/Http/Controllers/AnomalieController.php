@@ -15,6 +15,14 @@ class AnomalieController extends Controller
         return view('layouts.formulaire');
     }
 
+    public function showAnomaliesView()
+{
+    return view('anomalie'); // ou 'anomalies' selon le nom réel de ta vue Blade
+}
+
+ 
+ 
+
     /**
      * Enregistre une anomalie dans la base de données,
      * puis affiche le tableau de bord avec les données mises à jour.
@@ -59,7 +67,7 @@ class AnomalieController extends Controller
     public function dashboard()
     {
         $anomalies = Anomalie::orderBy('created_at', 'desc')->get();
-        return view('layouts.index', compact('anomalies'));
+        return view('statistics', compact('anomalies'));
     }
 
     /**

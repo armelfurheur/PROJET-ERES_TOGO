@@ -16,6 +16,34 @@ class DashboardController extends Controller
         $user = Auth::user();
 
         // Passe les données de l'utilisateur à la vue 'dash'
-        return view('layouts.index', compact('user'));
+        return view('statistics', compact('user'));
     }
+
+    public function showStatisticsView()
+    {
+        return view('statistics'); 
+    }
+
+     public function showPropositionView()
+{
+    return view('proposition'); 
+}
+
+public function showRapportView()
+{
+    return view('rapport'); 
+}
+
+public function showConfigurationView()
+{
+    return view('configuration'); 
+}
+
+public function showArchiveView()
+{
+    return view('archive'); 
+}
+
+
+
 }

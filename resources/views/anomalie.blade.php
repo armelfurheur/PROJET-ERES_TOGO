@@ -1,8 +1,8 @@
 <!-- Anomalies View -->
-@extends('dash')
+ @extends('dash')
 @section('content')
 
-<div id="view-anomalies" class="hse-view hidden">
+<div id="view-anomalies" class="">
     <div class="card">
         <div class="card-header">
             <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="logo-img">
@@ -91,4 +91,44 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const anomaliesTableBody = document.getElementById('anomaliesTableBody');
+    const anomalyCountSpan = document.getElementById('anomalyCount');
+    function loadAnomalies() {
+        fetch("{{ route('anomalies.list') }}")
+            .then(response => response.json())
+            .then(data => {
+                const anomalies = data.anomalies;
+                anomaliesTableBody.innerHTML = ""; 
+                anomalyCountSpan.textContent = `(${anomalies.length})`;
+
+                anomalies.forEach(anomaly => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${anomaly.id}</td>
+                        <td>${new Date(anomaly.datetime).toLocaleString()}</td>
+                        <td>${anomaly.rapporte_par}</td>
+                        <td>${anomaly.departement}</td>
+                        <td>${anomaly.localisation}</td>
+                        <td style="text-align: center;">${anomaly.statut}</td>
+                        <td style="text-align: center;">${anomaly.status || '—'}</td>
+                        <td style="text-align: center;">
+                            <button class="btn btn-sm btn-primary" onclick="viewAnomaly(${anomaly.id})">Voir</button>
+                        </td>
+                    `;
+                    anomaliesTableBody.appendChild(row);
+                });
+            })
+            .catch(err => console.error("Erreur lors du chargement des anomalies :", err));
+    }
+
+    loadAnomalies();
+
+    window.viewAnomaly = function(id) {
+        alert("Voir l'anomalie #" + id);
+    }
+});
+</script>
+
 @endsection

@@ -20,6 +20,7 @@ class ProposalController extends Controller
 
         return view('proposals.index', compact('proposals'));
     }
+    
 
    
  

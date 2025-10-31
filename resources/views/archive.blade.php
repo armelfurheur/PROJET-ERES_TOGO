@@ -3,7 +3,7 @@
 @extends('dash')
 @section('content')
 
-<div id="view-archive" class="hse-view hidden">
+<div id="view-archive" class="">
     <div class="page-header">
         <h1>📦 Archives</h1>
         <p>Anomalies clôturées et archivées</p>

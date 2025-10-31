@@ -6,6 +6,7 @@ use App\Http\Controllers\AnomalieController;
 use App\Http\Controllers\FormulaireController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProposalController;
+use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 // ================= Page de Connexion =================
 Route::get('/', function () {
@@ -16,6 +17,15 @@ Route::get('/', function () {
 Route::get('/qrcode', function () {
     return view('qrcode');
 });
+
+// Sidbar Route
+Route::get('/anomalies', [AnomalieController::class, 'showAnomaliesView'])->name('anomalies.view');
+Route::get('/statistics', [DashboardController::class, 'showStatisticsView'])->name('statistics.view');
+Route::get('/proposition', [DashboardController::class, 'showPropositionView'])->name('proposition.view');
+Route::get('/rapport', [DashboardController::class, 'showRapportView'])->name('rapport.view');
+Route::get('/configuration', [DashboardController::class, 'showConfigurationView'])->name('configuration.view');
+Route::get('/archive', [DashboardController::class, 'showArchiveView'])->name('archive.view');
+
 
 // ================= Routes Invitées (non connectées) =================
 Route::middleware('guest')->group(function () {
@@ -73,4 +83,5 @@ Route::get('/api/anomalies', [AnomalieController::class, 'getAnomalies'])->name(
 Route::get('/api/anomalies/{id}', [AnomalieController::class, 'getAnomalie'])->name('api.anomalie.show');
 
 Route::post('/proposals', [ProposalController::class, 'store'])->name('proposals.store');
+
 });

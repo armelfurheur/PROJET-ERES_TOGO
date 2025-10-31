@@ -593,7 +593,7 @@ td input, td select {
 .chart-card h4 { margin-bottom: 1rem; text-align: center; font-size: 1rem; }
 
 .chart-container { 
-    height: 250px; 
+    height: 300px; 
     position: relative;
 }
 

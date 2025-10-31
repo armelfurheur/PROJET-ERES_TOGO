@@ -1,6 +1,9 @@
 
+  @extends('dash')
+  @section('content')
+  
   <!-- Params View -->
-                <div id="view-params" class="hse-view hidden">
+                <div id="view-params" class="">
                     <div class="card">
                         <div class="card-header">
                             <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="logo-img">
@@ -65,3 +68,4 @@
                         </div>
                     </div>
                 </div>
+@endsection
