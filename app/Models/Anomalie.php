@@ -13,7 +13,8 @@ class Anomalie extends Model
         'rapporte_par',
         'departement',
         'localisation',
-        'statut',
+        'gravity',
+        'status',
         'description',
         'action',
         'datetime',
@@ -35,5 +36,7 @@ class Anomalie extends Model
     {
         return $this->hasMany(Proposition::class);
     }
+
+
   
 }

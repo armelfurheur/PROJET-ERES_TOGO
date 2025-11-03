@@ -14,13 +14,13 @@ return new class extends Migration
             $table->string('departement');
             $table->string('localisation');
             // 💡 Changé de 'statut_anomalie' à 'statut'
-            $table->enum('statut', ['arret', 'precaution', 'continuer'])->default('continuer');
+            $table->enum('gravity', ['arret', 'precaution', 'continuer'])->default('continuer');
             $table->text('description');
             $table->text('action');
             // 💡 Changé de 'preuve_url' à 'preuve'
             $table->string('preuve')->nullable();
             $table->timestamp('datetime');
-            $table->enum('status', ['Ouverte', 'Clos'])->default('Ouverte');
+            $table->enum('status', ['Ouverte', 'Clôturée'])->default('Ouverte');
             $table->boolean('read')->default(false);
             $table->boolean('has_proposal')->default(false);
             $table->timestamps();

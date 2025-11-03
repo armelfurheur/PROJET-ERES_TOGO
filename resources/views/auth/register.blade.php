@@ -28,7 +28,7 @@
 
             <!-- Nom -->
             <div>
-                <label for="name" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Nom</label>
+                <label for="name" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Nom :*</label>
                 <input type="text" name="name" id="name" required placeholder="Nom complet"
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150"
                     value="{{ old('name') }}" autofocus>
@@ -36,7 +36,7 @@
 
             <!-- Email -->
             <div>
-                <label for="email" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Email</label>
+                <label for="email" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Email :*</label>
                 <input type="email" name="email" id="email" required placeholder="Votre email"
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150"
                     value="{{ old('email') }}">
@@ -44,7 +44,7 @@
 
             <!-- Département -->
             <div>
-                <label for="department" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Département</label>
+                <label for="department" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Département :*</label>
                 <select name="department" id="department" required
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
                     <option value="" disabled selected>Sélectionner un département</option>
@@ -66,7 +66,7 @@
 
             <!-- Mot de passe -->
             <div>
-                <label for="password" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Mot de passe</label>
+                <label for="password" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Mot de passe :*</label>
                 <div class="relative">
                     <input type="password" name="password" id="password" required placeholder="Mot de passe"
                         class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
@@ -88,7 +88,7 @@
 
             <!-- Confirmation -->
             <div>
-                <label for="password_confirmation" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Confirmer le mot de passe</label>
+                <label for="password_confirmation" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Confirmer le mot de passe :*</label>
                 <div class="relative">
                     <input type="password" name="password_confirmation" id="password_confirmation" required placeholder="Confirmer"
                         class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">

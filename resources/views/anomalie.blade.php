@@ -1,134 +1,106 @@
-<!-- Anomalies View -->
- @extends('dash')
+@extends('dash')
 @section('content')
 
-<div id="view-anomalies" class="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<div id="view-anomalies" class="p-1">
     <div class="card">
-        <div class="card-header">
-            <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="logo-img">
-            <h2>⚠ Anomalies soumises</h2>
-            <button id="markAllAsRead" class="btn btn-sm btn-secondary">✓ Marquer comme lu</button>
+        <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-4">
+                <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="h-12 w-auto">
+                <h2 class="text-xl font-semibold">Anomalies soumises</h2>
+            </div>
         </div>
 
-        <div style="margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-            <select id="filterStatus" class="form-control" style="max-width: 200px;">
-                <option value="all">Tous les statuts</option>
+        <!-- Filtres -->
+        <div class="flex flex-wrap gap-4 mb-4">
+            <select id="filterStatus" class="border rounded px-3 py-1 max-w-xs">
+                <option value="">Tous les statuts</option>
                 <option value="Ouverte">Ouvertes</option>
-                <option value="Clos">Clôturées</option>
+                <option value="Clôturée">Clôturées</option>
             </select>
-            <select id="filterPriority" class="form-control" style="max-width: 200px;">
-                <option value="all">Toutes priorités</option>
-                <option value="arret">🚨 Arrêt Imminent</option>
-                <option value="precaution">⚠ Précaution</option>
-                <option value="continuer">🟢 Continuer</option>
+            <select id="filterPriority" class="border rounded px-3 py-1 max-w-xs">
+                <option value="">Toutes priorités</option>
+                <option value="arret">Arrêt Imminent</option>
+                <option value="precaution">Précaution</option>
+                <option value="continuer">Continuer</option>
             </select>
-            <input id="searchDepartment" class="form-control" style="max-width: 200px;" placeholder="Rechercher par département...">
-            <input id="searchDate" type="date" class="form-control" style="max-width: 200px;" placeholder="Filtrer par date...">
+            <input id="searchDepartment" class="border rounded px-3 py-1 max-w-xs" placeholder="Rechercher par département...">
+            <input id="searchDate" type="date" class="border rounded px-3 py-1 max-w-xs">
         </div>
 
+        <!-- Table + Pagination -->
         <div>
-            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">
-                Liste des anomalies <span id="anomalyCount" style="color: var(--primary);">(0)</span>
+            <h3 class="font-semibold text-lg mb-1">
+                Liste des anomalies <span id="anomalyCount" class="text-blue-500">(0)</span>
             </h3>
-            <div class="table-container">
-                <table>
-                    <thead>
+            <div class="table-container overflow-x-auto">
+                <table class="w-full table-auto border-collapse border border-gray-200">
+                    <thead class="bg-gray-100">
                         <tr>
-                            <th>ID</th>
-                            <th>Date/Heure</th>
-                            <th>Rapporté par</th>
-                            <th>Département</th>
-                            <th>Localisation</th>
-                            <th style="text-align: center;">Gravité</th>
-                            <th style="text-align: center;">Statut</th>
-                            <th style="text-align: center;">Actions</th>
+                            <th class="border px-2 py-1">ID</th>
+                            <th class="border px-2 py-1">Date/Heure</th>
+                            <th class="border px-2 py-1">Rapporté par</th>
+                            <th class="border px-2 py-1">Département</th>
+                            <th class="border px-2 py-1">Localisation</th>
+                            <th class="border px-2 py-1 text-center">Gravité</th>
+                            <th class="border px-2 py-1 text-center">Status</th>
+                            <th class="border px-2 py-1 text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="anomaliesTableBody"></tbody>
                 </table>
             </div>
 
-            <div class="btn-group mt-4">
-                <button id="exportAnomaliesCsv" class="btn btn-primary btn-sm">📊 Export CSV</button>
-                <button id="exportAnomaliesPdf" class="btn btn-secondary btn-sm">📄 Exporter PDF</button>
-            </div>
+            <!-- Pagination -->
+            <div id="pagination" class="flex justify-center items-center gap-3 mt-4"></div>
         </div>
     </div>
 </div>
 
-<!-- Proposals View -->
-<div id="view-proposals" class="hse-view hidden">
-    <div class="card">
-        <div class="card-header">
-            <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="logo-img">
-            <h2 style="text-align: center; width: 100%;">📋 Propositions d'actions correctrices</h2>
-        </div>
-
-        <div>
-            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem; text-align: center;">Liste des propositions</h3>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Anomalie ID</th>
-                            <th>Date & heure réception</th>
-                            <th>Action</th>
-                            <th>Personne</th>
-                            <th>Date prévue</th>
-                            <th style="text-align: center;">Statut</th>
-                            <th style="text-align: center;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="proposalsTableBody"></tbody>
-                </table>
-            </div>
-
-            <div class="btn-group mt-4" style="justify-content: center;">
-                <button id="exportProposalsCsv" class="btn btn-primary btn-sm">📊 Export CSV</button>
-                <button id="exportProposalsPdf" class="btn btn-secondary btn-sm">📄 Exporter PDF</button>
-            </div>
-        </div>
+<!-- Modal Voir Anomalie -->
+<div id="viewAnomalyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+        <span class="absolute top-2 right-3 text-gray-500 cursor-pointer hover:text-gray-700 text-xl" onclick="closeViewAnomalyModal()">×</span>
+        <h3 class="text-lg font-semibold mb-4">Détails de l'anomalie</h3>
+        <div id="anomalyDetails"><p>Chargement...</p></div>
     </div>
 </div>
+
+<!-- Modal Ajouter Proposition -->
+<div id="addProposalModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
+        <span class="absolute top-2 right-3 text-gray-500 cursor-pointer hover:text-gray-700 text-xl" onclick="closeAddProposalModal()">×</span>
+        <h3 class="text-lg font-semibold mb-4">Ajouter une proposition</h3>
+        <form id="addProposalForm" class="space-y-4">
+            <input type="hidden" name="anomalie_id" id="proposalAnomalieId">
+            <div>
+                <label class="block mb-1">Action*</label>
+                <input type="text" name="action" class="w-full border rounded px-3 py-2" required>
+            </div>
+            <div>
+                <label class="block mb-1">Personne*</label>
+                <input type="text" name="person" class="w-full border rounded px-3 py-2" required>
+            </div>
+            <div>
+                <label class="block mb-1">Date prévue*</label>
+                <input type="date" name="date" class="w-full border rounded px-3 py-2" required>
+            </div>
+            <div class="text-center mt-2">
+                <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const anomaliesTableBody = document.getElementById('anomaliesTableBody');
-    const anomalyCountSpan = document.getElementById('anomalyCount');
-    function loadAnomalies() {
-        fetch("{{ route('anomalies.list') }}")
-            .then(response => response.json())
-            .then(data => {
-                const anomalies = data.anomalies;
-                anomaliesTableBody.innerHTML = ""; 
-                anomalyCountSpan.textContent = `(${anomalies.length})`;
-
-                anomalies.forEach(anomaly => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${anomaly.id}</td>
-                        <td>${new Date(anomaly.datetime).toLocaleString()}</td>
-                        <td>${anomaly.rapporte_par}</td>
-                        <td>${anomaly.departement}</td>
-                        <td>${anomaly.localisation}</td>
-                        <td style="text-align: center;">${anomaly.statut}</td>
-                        <td style="text-align: center;">${anomaly.status || '—'}</td>
-                        <td style="text-align: center;">
-                            <button class="btn btn-sm btn-primary" onclick="viewAnomaly(${anomaly.id})">Voir</button>
-                        </td>
-                    `;
-                    anomaliesTableBody.appendChild(row);
-                });
-            })
-            .catch(err => console.error("Erreur lors du chargement des anomalies :", err));
-    }
-
-    loadAnomalies();
-
-    window.viewAnomaly = function(id) {
-        alert("Voir l'anomalie #" + id);
-    }
-});
+    window.routes = {
+        anomaliesList: "{{ route('anomalies.list') }}",
+        proposalsStore: "{{ route('proposals.store') }}"
+    };
 </script>
+
+<script src="{{ asset('js/anomalie.js') }}"></script>
 
 @endsection

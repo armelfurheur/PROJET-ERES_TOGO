@@ -44,29 +44,29 @@
 
             {{-- Localisation --}}
             <div>
-                <label for="localisation">Localisation :</label>
+                <label for="localisation">Localisation :*</label>
                 <input type="text" name="localisation" id="localisation" value="{{ old('localisation') }}" class="w-full border rounded-xl p-3" required>
             </div>
 
             {{-- Gravité --}}
             <div>
-                <span class="font-bold">Niveau de Gravité :</span>
+                <span class="font-bold">Niveau de Gravité :*</span>
                 <div class="grid sm:grid-cols-3 gap-4 mt-2">
-                    <label><input type="radio" name="statut" value="arret" {{ old('statut') == 'arret' ? 'checked' : '' }}> 🚨 Arrêt Imminent</label>
-                    <label><input type="radio" name="statut" value="precaution" {{ old('statut') == 'precaution' ? 'checked' : '' }}> ⚠️ Précaution</label>
-                    <label><input type="radio" name="statut" value="continuer" {{ old('statut', 'continuer') == 'continuer' ? 'checked' : '' }}> 🟢 Continuer</label>
+                    <label><input type="radio" name="gravity" value="arret" {{ old('statut') == 'arret' ? 'checked' : '' }}> 🚨 Arrêt Imminent</label>
+                    <label><input type="radio" name="gravity" value="precaution" {{ old('statut') == 'precaution' ? 'checked' : '' }}> ⚠️ Précaution</label>
+                    <label><input type="radio" name="gravity" value="continuer" {{ old('statut', 'continuer') == 'continuer' ? 'checked' : '' }}> 🟢 Continuer</label>
                 </div>
             </div>
 
             {{-- Description --}}
             <div>
-                <label for="description">Description :</label>
+                <label for="description">Description :*</label>
                 <textarea name="description" id="description" rows="4" class="w-full border rounded-xl p-3" required>{{ old('description') }}</textarea>
             </div>
 
             {{-- Action --}}
             <div>
-                <label for="action">Action immédiate :</label>
+                <label for="action">Action immédiate :*</label>
                 <textarea name="action" id="action" rows="3" class="w-full border rounded-xl p-3" required>{{ old('action') }}</textarea>
             </div>
             
@@ -75,7 +75,7 @@
 
             {{-- Preuve --}}
             <div>
-                <label for="preuve">Image (preuve, optionnel) :</label>
+                <label for="preuve">Image (preuve, optionnel) :*</label>
                 <input type="file" name="preuve" id="preuve" accept="image/*" onchange="previewImage(event)" class="block w-full text-sm">
                 <div id="image-preview-container" class="hidden mt-2 text-center">
                     <img id="image-preview" src="#" alt="Aperçu" class="max-h-40 mx-auto rounded shadow">

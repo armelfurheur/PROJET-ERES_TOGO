@@ -97,9 +97,7 @@
                             <div class="btn-group mt-4" style="justify-content: center;">
                                 <button id="exportReportCsv" class="btn btn-primary btn-sm">📊 CSV</button>
                                 <button id="exportReportPdf" class="btn btn-secondary btn-sm">📄 PDF</button>
-                                <button id="sendReportEmail" class="btn btn-info btn-sm">✉️ Email</button>
-                                <button id="toggleCharts" class="btn btn-warning btn-sm">📊 Afficher diagrammes</button>
-                            </div>
+                                <button id="sendReportEmail" class="btn btn-info btn-sm">✉️ Email</button>                       </div>
                         </div>
                     </div>
                 </div>

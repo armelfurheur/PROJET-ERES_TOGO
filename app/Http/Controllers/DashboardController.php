@@ -21,29 +21,35 @@ class DashboardController extends Controller
 
     public function showStatisticsView()
     {
-        return view('statistics'); 
+        return view('statistics');
     }
 
-     public function showPropositionView()
-{
-    return view('proposition'); 
-}
+    public function showPropositionView()
+    {
+        return view('proposition');
+    }
 
-public function showRapportView()
-{
-    return view('rapport'); 
-}
+    public function showRapportView()
+    {
+        return view('rapport');
+    }
 
-public function showConfigurationView()
-{
-    return view('configuration'); 
-}
+    public function showConfigurationView()
+    {
+        return view('configuration');
+    }
 
-public function showArchiveView()
-{
-    return view('archive'); 
-}
+    public function showArchiveView()
+    {
+        return view('archive');
+    }
 
 
+    public function showCorbeilleView()
+    {
+        return view('corbeille');
+    }
 
+
+    
 }

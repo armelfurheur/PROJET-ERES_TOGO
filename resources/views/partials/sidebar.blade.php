@@ -12,11 +12,11 @@
     <nav class="sidebar-nav">
         <ul style="list-style: none;">
             <li class="nav-item">
-               
-                  <a href="{{ route('statistics.view') }}" class="nav-link active" data-view="dashboard">
-                           
-                                                <span>Tableau de bord</span>
-                        </a>
+
+                <a href="{{ route('statistics.view') }}" class="nav-link active" data-view="dashboard">
+
+                    <span>Tableau de bord</span>
+                </a>
             </li>
 
             <!-- HSE -->
@@ -35,24 +35,15 @@
 
 
                     </li>
-                    <li><a href="{{ route('proposition.view') }}" class="nav-link" data-view="proposals">Propositions actions</a></li>
                     <li><a href="{{ route('rapport.view') }}" class="nav-link" data-view="reports">Rapports</a></li>
+                    <li><a href="{{ route('archive.view') }}" class="nav-link" data-view="archive">Archives</a></li>
+
+
                 </ul>
+
             </li>
 
-            <!-- Paramètres -->
-            <li class="nav-item" style="margin-top: 1.5rem;">
-                <div class="nav-section-title">
-                    <span>Paramètres</span>
-                    <i class="icon fas fa-chevron-down"></i>
-                </div>
-                <ul class="sub-menu">
-                    <li><a href="{{ route('configuration.view') }}" class="nav-link" data-view="params">Configuration</a></li>
-                    <li><a href="{{ route('archive.view') }}" class="nav-link" data-view="archive">Archives</a></li>
-                    <li><a href="#" class="nav-link" data-view="trash">Corbeille</a></li>
-                </ul>
-            </li>
-        </ul>
+          
     </nav>
 
     <!-- JS DU MENU DÉROULANT (AUTONOME) -->

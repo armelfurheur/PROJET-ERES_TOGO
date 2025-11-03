@@ -20,10 +20,10 @@ class ProposalController extends Controller
 
         return view('proposals.index', compact('proposals'));
     }
-    
 
-   
- 
+
+
+
 
     public function store(Request $request)
     {
@@ -49,9 +49,27 @@ class ProposalController extends Controller
             ->with('success', 'Proposition ajoutée avec succès !');
     }
 
-    public function show(Proposition $proposal)
+
+    public function getProposalsByAnomalie($anomalieId)
     {
-        $proposal->load('anomalie');
-        return view('proposals.show', compact('proposal'));
+        $proposals = Proposition::where('anomalie_id', $anomalieId)
+            ->orderBy('received_at', 'desc')
+            ->get();
+
+        return response()->json(['proposals' => $proposals]);
+    }
+
+
+    public function close($id)
+    {
+        $proposal = Proposition::findOrFail($id);
+
+        if ($proposal->status !== 'Clôturée') {
+            $proposal->status = 'Clôturée';
+            $proposal->save();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false]);
     }
 }
