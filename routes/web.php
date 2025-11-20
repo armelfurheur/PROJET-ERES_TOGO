@@ -15,7 +15,8 @@ Route::get('/', function () {
 Route::get('/anomalies/closed', [AnomalieController::class, 'getClosedAnomaliesWithProposals'])
     ->name('anomalies.closed');
 Route::post('/proposals/{id}/close', [ProposalController::class, 'close'])->name('proposals.close');
- Route::put('/anomalies/{id}/update-status', [AnomalieController::class, 'updateStatus'])->name('anomalies.updateStatus');
+Route::put('/anomalies/{id}/update-status', [AnomalieController::class, 'updateStatus'])->name('anomalies.updateStatus');
+Route::post('/reports/generate', [AnomalieController::class, 'generateReport'])->name('generate.report');
  
 // ================= QR Code =================
 Route::get('/qrcode', function () {

@@ -554,10 +554,10 @@ tbody tr.unread { background: #fef3c7; font-weight: 500; }
 body.dark-mode tbody tr.unread { background: #78350f; }
 
 td input, td select {
-    width: 100%;
+    width: 105%;
     padding: 0.5rem;
     border: 1px solid var(--gray-300);
-    border-radius: 6px;
+    border-radius: 1px;
     font-size: 0.85rem;
     background: var(--bg-card);
     color: var(--text-primary);
@@ -692,4 +692,130 @@ body.dark-mode .btn-secondary:hover { background: var(--gray-500); }
 
 body.dark-mode .welcome-title {
     color: var(--accent);
+}
+
+
+
+/* ===== DARK MODE GLOBAL - À AJOUTER DANS TON FICHIER CSS PRINCIPAL ===== */
+.dark-mode,
+html.dark-mode {
+    background-color: #111827;  /* gris très foncé */
+    color: #f3f4f6;               /* texte clair */
+    color-scheme: dark;
+}
+
+.dark-mode a,
+html.dark-mode a {
+    color: #60a5fa;
+}
+
+.dark-mode a:hover,
+html.dark-mode a:hover {
+    color: #93bbfc;
+}
+
+/* Fond des cartes, tableaux, formulaires */
+.dark-mode .card,
+.dark-mode .table,
+.dark-mode .bg-white,
+.dark-mode .panel,
+.dark-mode .modal-content,
+.dark-mode .form-control,
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea,
+html.dark-mode .bg-white {
+    background-color: #1f2937 !important;
+    color: #e5e7eb !important;
+    border-color: #374151 !important;
+}
+
+/* Bordures et séparateurs */
+.dark-mode .border,
+.dark-mode .border-gray-300,
+html.dark-mode .border {
+    border-color: #374151 !important;
+}
+
+/* Texte secondaire */
+.dark-mode .text-gray-600,
+.dark-mode .text-muted,
+html.dark-mode .text-gray-600 {
+    color: #9ca3af !important;
+}
+
+/* Boutons primaires (bleu) */
+.dark-mode .btn-primary,
+html.dark-mode .btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.dark-mode .btn-primary:hover,
+html.dark-mode .btn-primary:hover {
+    background-color: #1d4ed8;
+}
+
+/* Tableau */
+.dark-mode table,
+.dark-mode .table {
+    color: #e5e7eb;
+}
+
+.dark-mode .table thead,
+html.dark-mode .table thead {
+    background-color: #111827;
+    color: #9ca3af;
+}
+
+.dark-mode .table-striped tbody tr:nth-of-type(odd),
+html.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+    background-color: #1f2937;
+}
+
+/* Dropdown utilisateur (déjà bon mais on renforce) */
+.dark-mode .user-dropdown-menu {
+    background: #1f2937 !important;
+    border-color: #374151 !important;
+    color: #f3f4f6 !important;
+}
+
+.dark-mode .user-dropdown-info div:last-child {
+    color: #94a3b8 !important;
+}
+
+/* Scrollbar (optionnel mais joli) */
+.dark-mode::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dark-mode::-webkit-scrollbar-track {
+    background: #111827;
+}
+
+.dark-mode::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 4px;
+}
+
+.dark-mode::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+}
+#themeToggle svg {
+    transition: all 0.3s ease;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#themeToggle svg {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(90deg) scale(0.5);
+}
+
+#themeToggle svg[style*="display: block"],
+#themeToggle svg[style*="display:block"] {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0) scale(1);
 }

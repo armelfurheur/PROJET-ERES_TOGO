@@ -2,37 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Archive extends Model
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'anomalie_id',
-        'rapporte_par',
-        'departement',
-        'localisation',
-        'statut',
-        'description',
-        'action',
-        'preuve',
-        'datetime',
-        'status',
-        'closed_at',
-        'closed_by',
-        'proposals'
-    ];
+    protected $guarded = [];
 
     protected $casts = [
         'datetime' => 'datetime',
         'closed_at' => 'datetime',
-        'proposals' => 'array'
+        'proposals' => 'array', // JSON → array PHP
     ];
 
-    public function anomalie()
+    // Relations
+    public function anomaly()
     {
         return $this->belongsTo(Anomalie::class);
+    }
+
+    public function closer()
+    {
+        return $this->belongsTo(User::class, 'closed_by');
     }
 }

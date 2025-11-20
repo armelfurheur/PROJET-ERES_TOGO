@@ -35,22 +35,41 @@
                     <span class="ml-2 text-white">bienvenue</span>
                     <span class="ml-1 font-semibold text-yellow-300">{{ Auth::user()->name }}</span>
                 </span>
-                <form id="logoutForm" action="{{ route('logout') }}" method="POST" class="ml-4 inline">
+             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
                     @csrf
-                    <button type="submit" id="logoutBtn" class="text-sm text-yellow-300 hover:text-yellow-400 font-medium underline">
-                        Déconnexion
-                    </button>
-                </form>
+             </form>
+
+<a href="#" class="logout-btn" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+    Déconnexion
+</a>
+
+<style>
+.logout-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    color: #d6a00cff; /* texte noir pour contraste */
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-family: 'Arial', sans-serif;
+}
+
+</style>
+
             @else
                 <a href="{{ route('login') }}" class="mr-4">
-                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-700 hover:bg-green-600 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </span>
-                </a>
-                <a href="{{ route('register') }}" class="text-yellow-300 hover:underline">Inscription</a>
-            @endauth
+                  
+    <a href="{{ route('register') }}" class="flex items-center text-yellow-300 hover:underline">
+    <img 
+        src="{{ asset('img/8e2704d5c0038bae80b51ebf747e7bad.jpg') }}" 
+        class="w-10 h-10 mr-2 object-contain mix-blend-multiply"
+        alt="user icon"
+    >
+    Inscription
+</a>
+
+         @endauth
         </div>
     </nav>
     

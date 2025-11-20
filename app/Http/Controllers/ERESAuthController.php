@@ -69,7 +69,7 @@ class ERESAuthController extends Controller
             $request->validate([
                 'name'       => 'required|string|max:255',
                 'email'      => 'required|string|email|max:255|unique:users',
-                'department' => 'required|string|in:Technique,Logistique,Administratif,Commercial',
+                'department' => 'required|string|in:Technique,Logistique,Administratif,Commercial,Achat',
                 'password'   => 'required|string|min:8|confirmed',
                 'admin_code' => 'nullable|string', // Code admin facultatif
             ]);
@@ -197,17 +197,17 @@ class ERESAuthController extends Controller
     /**
      * Déconnecte l'utilisateur.
      */
-    public function logout(Request $request)
-    {
-        Auth::logout();
+   /**
+ * Déconnecte l'utilisateur et affiche la page de logout.
+ */
+public function logout(Request $request)
+{
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+    // Affiche la page logout (resources/views/auth/logout.blade.php)
+    return view('auth.logout');
+}
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Déconnexion réussie.',
-            'redirect' => '/login',
-        ], 200);
-    }
 }

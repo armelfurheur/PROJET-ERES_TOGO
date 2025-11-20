@@ -21,7 +21,7 @@
             </select>
             <select id="filterPriority" class="border rounded px-3 py-1 max-w-xs">
                 <option value="">Toutes priorités</option>
-                <option value="arret">Arrêt Imminent</option>
+                <option value="arret">Arrêt Immédiat</option>
                 <option value="precaution">Précaution</option>
                 <option value="continuer">Continuer</option>
             </select>
@@ -102,5 +102,24 @@
 </script>
 
 <script src="{{ asset('js/anomalie.js') }}"></script>
+<style>
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.95); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+.animate-fadeOut {
+  animation: fadeOut 0.25s ease-in forwards;
+}
+
+</style>
+
 
 @endsection

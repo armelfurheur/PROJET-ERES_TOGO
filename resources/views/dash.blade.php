@@ -20,21 +20,18 @@
     <script src="{{ asset('js/proposition.js') }}"></script>
     <script src="{{ asset('js/rapport.js') }}"></script>
     <script src="{{ asset('js/archives.js') }}"></script>
-
 </head>
-
 <body>
     <div class="dashboard-container">
         @include('partials.sidebar')
         <div class="main-content">
             @include('partials.header')
-
             <main class="content-area">
                 <div id="view-dashboard" class="hse-view">
                     @yield('content')
                 </div>
             </main>
+             @include('partials.footer')
         </div>
 </body>
-
 </html>

@@ -15,7 +15,7 @@
             @csrf
             <div>
                 <label for="email" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Adresse E-mail :*</label>
-                <input type="email" name="email" id="email" value="{{ old('email') }}" required
+                <input type="email" name="email"  id="email" value="{{ old('email') }}" required
                     placeholder="Entrer votre Email"
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
             </div>

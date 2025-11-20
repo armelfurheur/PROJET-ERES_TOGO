@@ -144,128 +144,310 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-    // === Voir Anomalie ===
-    window.viewAnomaly = function (id) {
-        const modal = document.getElementById('viewAnomalyModal');
-        const details = document.getElementById('anomalyDetails');
-        modal.classList.remove('hidden');
-        details.innerHTML = 'Chargement...';
+   // === Voir Anomalie (amélioré) ===
+window.viewAnomaly = function (id) {
+    const modal = document.getElementById('viewAnomalyModal');
+    const details = document.getElementById('anomalyDetails');
 
-        fetch(`/anomalies/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                const a = data.anomalie;
-                details.innerHTML = `
-                   
-                    <p><strong>Rapporté par :</strong> ${a.rapporte_par}</p>
-                    <p><strong>Département :</strong> ${a.departement}</p>
-                    <p><strong>Localisation :</strong> ${a.localisation}</p>
-                    <p><strong>Gravité :</strong> ${a.gravity}</p>
-                    <p><strong>Description :</strong> ${a.description || '-'}</p>
-                    <p><strong>Action :</strong> ${a.action || '-'}</p>
-                    <p><strong>Date/Heure :</strong> ${new Date(a.created_at).toLocaleString()}</p>
-                    ${a.preuve ? `<p><strong>Preuve :</strong> <a href="/storage/${a.preuve}" target="_blank" class="text-blue-600 underline">Voir</a></p>` : ''}
-                `;
-            })
-            .catch(() => details.innerHTML = '<p class="text-red-500">Erreur de chargement.</p>');
-    };
+    // Animation d'apparition du modal
+    modal.classList.remove('hidden');
+    modal.classList.add('flex', 'items-center', 'justify-center', 'bg-black/40', 'backdrop-blur-sm');
+    details.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-10 text-gray-500">
+            <svg class="animate-spin h-8 w-8 text-blue-500 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+            </svg>
+            <p>Chargement des détails...</p>
+        </div>
+    `;
 
-    window.closeViewAnomalyModal = () => document.getElementById('viewAnomalyModal').classList.add('hidden');
+    fetch(`/anomalies/${id}`)
+        .then(res => res.json())
+        .then(data => {
+            const a = data.anomalie;
 
-    // === Ajouter Proposition ===
-    window.showAddProposalForm = function (id) {
-        document.getElementById('addProposalModal').classList.remove('hidden');
-        document.getElementById('proposalAnomalieId').value = id;
-    };
+            details.innerHTML = `
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 animate-fadeIn">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-lg font-semibold text-gray-800 flex items-center space-x-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Détails de l’anomalie #${a.id}</span>
+                        </h2>
+                        <button onclick="closeViewAnomalyModal()" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
 
-    window.closeAddProposalModal = () => {
-        document.getElementById('addProposalModal').classList.add('hidden');
-        document.getElementById('addProposalForm').reset();
-    };
+                    <div class="space-y-3 text-sm text-gray-700">
+                        <div><strong class="text-gray-900">📅 Date / Heure :</strong> ${new Date(a.created_at).toLocaleString()}</div>
+                        <div><strong class="text-gray-900">👤 Rapporté par :</strong> ${a.rapporte_par}</div>
+                        <div><strong class="text-gray-900">🏢 Département :</strong> ${a.departement}</div>
+                        <div><strong class="text-gray-900">📍 Localisation :</strong> ${a.localisation || '-'}</div>
+                        <div><strong class="text-gray-900">⚠️ Gravité :</strong> 
+                            <span class="px-2 py-1 rounded text-white text-xs ${a.gravity === 'Élevée' ? 'bg-red-500' : a.gravity === 'Moyenne' ? 'bg-yellow-500' : 'bg-green-500'}">
+                                ${a.gravity}
+                            </span>
+                        </div>
+                        <div><strong class="text-gray-900">📝 Description :</strong> 
+                            <p class="mt-1 text-gray-600">${a.description || '<em>Aucune description</em>'}</p>
+                        </div>
+                        <div><strong class="text-gray-900">🔧 Action :</strong> 
+                            <p class="mt-1 text-gray-600">${a.action || '<em>Aucune action spécifiée</em>'}</p>
+                        </div>
+                       ${a.preuve ? `
+<div>
+    <strong class="text-gray-900">📎 Preuves :</strong>
+    <div class="flex flex-wrap gap-2 mt-1">
+        ${JSON.parse(a.preuve).map(file => `
+            <a href="/storage/${file}" target="_blank" class="inline-flex items-center text-blue-600 hover:underline">
+                Voir le fichier
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h6m0 0v6m0-6L10 17" />
+                </svg>
+            </a>
+        `).join('')}
+    </div>
+</div>
+` : ''}
 
-    document.getElementById('addProposalForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
+                    </div>
 
-        fetch(window.routes.proposalsStore, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
-            body: formData
+                    <div class="mt-6 flex justify-end">
+                        <button onclick="closeViewAnomalyModal()" 
+                            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                            Fermer
+                        </button>
+                    </div>
+                </div>
+            `;
         })
-            .then(res => res.json())
-            .then(data => {
-                closeAddProposalModal();
-                toastr.success('Proposition ajoutée !');
-                toggleProposals(formData.get('anomalie_id'));
-            })
-            .catch(() => toastr.error('Erreur lors de l’ajout'));
-    });
+        .catch(() => {
+            details.innerHTML = `
+                <div class="text-center py-8 text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p>Erreur lors du chargement de l’anomalie.</p>
+                </div>
+            `;
+        });
+};
 
-    // === Propositions ===
-    window.toggleProposals = function (anomalyId) {
-        const row = document.getElementById(`proposals-${anomalyId}`);
-        const container = document.getElementById(`proposal-container-${anomalyId}`);
+// === Fermer le modal ===
+window.closeViewAnomalyModal = () => {
+    const modal = document.getElementById('viewAnomalyModal');
+    modal.classList.add('hidden');
+};
 
-        if (!row.classList.contains('hidden')) {
-            row.classList.add('hidden');
-            return;
+  // === Ajouter une Proposition (amélioré et professionnel) ===
+window.showAddProposalForm = function (id) {
+    const modal = document.getElementById('addProposalModal');
+    const form = document.getElementById('addProposalForm');
+
+    // Préparation du modal
+    document.getElementById('proposalAnomalieId').value = id;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex', 'items-center', 'justify-center', 'bg-black/40', 'backdrop-blur-sm');
+
+    // Animation douce d’apparition
+    form.classList.add('animate-fadeIn');
+};
+
+// === Fermer le modal d’ajout ===
+window.closeAddProposalModal = () => {
+    const modal = document.getElementById('addProposalModal');
+    const form = document.getElementById('addProposalForm');
+
+    // Animation de fermeture
+    form.classList.add('animate-fadeOut');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        form.reset();
+        form.classList.remove('animate-fadeOut');
+    }, 250);
+};
+
+// === Gestion du formulaire ===
+document.getElementById('addProposalForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const form = this;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const formData = new FormData(form);
+
+    // Désactivation temporaire du bouton
+    submitBtn.disabled = true;
+    const originalText = submitBtn.textContent;
+    submitBtn.innerHTML = `
+        <svg class="animate-spin h-4 w-4 inline-block mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+        </svg>
+        Enregistrement...
+    `;
+
+    try {
+        const response = await fetch(window.routes.proposalsStore, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: formData
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const data = await response.json();
+
+        // Fermeture + rafraîchissement
+        closeAddProposalModal();
+        toastr.success('✅ Proposition ajoutée avec succès !');
+        toggleProposals(formData.get('anomalie_id')); // Rechargement local
+
+    } catch (error) {
+        console.error('Erreur ajout proposition:', error);
+        toastr.error('❌ Une erreur est survenue lors de l’enregistrement.');
+    } finally {
+        // Réactivation du bouton
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+});
+
+// === Gestion des propositions ===
+window.toggleProposals = async function (anomalyId) {
+    const row = document.getElementById(`proposals-${anomalyId}`);
+    const container = document.getElementById(`proposal-container-${anomalyId}`);
+
+    if (!row || !container) {
+        console.error(`Éléments introuvables pour l'anomalie ${anomalyId}`);
+        return;
+    }
+
+    // Si déjà visible → on masque avec une transition fluide
+    if (!row.classList.contains('hidden')) {
+        row.classList.add('opacity-0');
+        setTimeout(() => row.classList.add('hidden'), 200);
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="flex items-center gap-2 text-gray-500 text-sm animate-pulse">
+            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" 
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                      d="M4 4v16h16M4 4l16 16" />
+            </svg>
+            <span>Chargement des propositions...</span>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/proposals/list/${anomalyId}`);
+        if (!response.ok) throw new Error('Erreur réseau');
+
+        const data = await response.json();
+        const proposals = data.proposals || [];
+
+        if (proposals.length === 0) {
+            container.innerHTML = `
+                <p class="text-sm text-gray-500 italic py-2">Aucune proposition pour cette anomalie.</p>
+            `;
+        } else {
+            const listHTML = proposals.map(p => renderProposalItem(p)).join('');
+            container.innerHTML = `<ul class="space-y-2">${listHTML}</ul>`;
+            attachStatusListeners(container);
         }
 
-        container.innerHTML = 'Chargement...';
-        fetch(`/proposals/list/${anomalyId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data.proposals || data.proposals.length === 0) {
-                    container.innerHTML = '<p class="text-sm text-gray-500">Aucune proposition.</p>';
-                } else {
-                    let html = '<ul class="space-y-2">';
-                    data.proposals.forEach(p => {
-                        const disabled = p.status === 'Clôturée' ? 'disabled' : '';
-                        html += `
-                            <li class="border px-2 py-1 rounded flex justify-between items-center">
-                                <div>
-                                    <strong>Action:</strong> ${p.action} |
-                                    <strong>Personne:</strong> ${p.person} |
-                                    <strong>Date:</strong> ${new Date(p.date).toLocaleDateString()}
-                                </div>
-                                <select class="status-select text-xs px-2 py-1 border rounded" data-proposal-id="${p.id}" ${disabled}>
-                                    <option value="En attente" ${p.status === 'En attente' ? 'selected' : ''}>En attente</option>
-                                    <option value="Clôturée" ${p.status === 'Clôturée' ? 'selected' : ''}>Clôturer</option>
-                                </select>
-                            </li>`;
-                    });
-                    html += '</ul>';
-                    container.innerHTML = html;
+        // Animation d’apparition fluide
+        row.classList.remove('hidden');
+        setTimeout(() => row.classList.remove('opacity-0'), 50);
 
-                    container.querySelectorAll('.status-select').forEach(sel => {
-                        sel.addEventListener('change', function () {
-                            if (this.value === 'Clôturée') {
-                                fetch(`/proposals/${this.dataset.proposalId}/close`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({ status: 'Clôturée' })
-                                })
-                                    .then(res => res.json())
-                                    .then(d => {
-                                        if (d.success) {
-                                            toastr.success('Clôturée !');
-                                            this.disabled = true;
-                                        } else {
-                                            toastr.error('Échec');
-                                            this.value = 'En attente';
-                                        }
-                                    });
-                            }
-                        });
-                    });
+    } catch (error) {
+        console.error(error);
+        container.innerHTML = `
+            <div class="text-red-500 flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                     viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Une erreur est survenue lors du chargement.</span>
+            </div>
+        `;
+    }
+};
+
+/**
+ * Génère un élément HTML pour une proposition donnée
+ */
+function renderProposalItem(p) {
+    const isClosed = p.status === 'Clôturée';
+    const date = new Date(p.date).toLocaleDateString();
+
+    return `
+        <li class="border rounded-lg px-3 py-2 bg-gray-50 hover:bg-gray-100 transition flex justify-between items-center shadow-sm">
+            <div class="text-sm text-gray-700">
+                <p><strong class="text-blue-600">Action :</strong> ${p.action}</p>
+                <p><strong class="text-green-600">Personne :</strong> ${p.person}</p>
+                <p><strong class="text-gray-600">Date :</strong> ${date}</p>
+            </div>
+            <div class="ml-4">
+                <select 
+                    class="status-select text-xs px-2 py-1 border rounded-md bg-white focus:ring-2 focus:ring-blue-400 transition" 
+                    data-proposal-id="${p.id}" 
+                    ${isClosed ? 'disabled class="opacity-60 cursor-not-allowed"' : ''}>
+                    <option value="En attente" ${p.status === 'En attente' ? 'selected' : ''}>En attente</option>
+                    <option value="Clôturée" ${isClosed ? 'selected' : ''}>Clôturer</option>
+                </select>
+            </div>
+        </li>
+    `;
+}
+
+/**
+ * Attache les événements de changement de statut sur les sélecteurs.
+ */
+function attachStatusListeners(container) {
+    const selects = container.querySelectorAll('.status-select');
+
+    selects.forEach(select => {
+        select.addEventListener('change', async function () {
+            if (this.value !== 'Clôturée') return;
+
+            try {
+                const response = await fetch(`/proposals/${this.dataset.proposalId}/close`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: 'Clôturée' })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    toastr.success('✅ Proposition clôturée avec succès.');
+                    this.disabled = true;
+                    this.classList.add('opacity-60', 'cursor-not-allowed');
+                } else {
+                    throw new Error('Échec de la mise à jour');
                 }
-                row.classList.remove('hidden');
-            })
-            .catch(() => container.innerHTML = '<p class="text-red-500">Erreur.</p>');
-    };
+            } catch (err) {
+                console.error(err);
+                toastr.error('❌ Une erreur est survenue lors de la clôture.');
+                this.value = 'En attente';
+            }
+        });
+    });
+}
 
     
     loadAnomalies();

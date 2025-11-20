@@ -15,7 +15,7 @@
 
                 <a href="{{ route('statistics.view') }}" class="nav-link active" data-view="dashboard">
 
-                    <span>Tableau de bord</span>
+                    <span>Acceuil</span>
                 </a>
             </li>
 
@@ -47,17 +47,38 @@
     </nav>
 
     <!-- JS DU MENU DÉROULANT (AUTONOME) -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.nav-section-title').forEach(title => {
-                title.addEventListener('click', function() {
-                    const submenu = this.nextElementSibling;
-                    if (submenu && submenu.classList.contains('sub-menu')) {
-                        submenu.classList.toggle('open'); // Affiche ou cache le menu
-                        this.classList.toggle('open'); // Pour rotation de l’icône
-                    }
-                });
-            });
-        });
-    </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const sectionTitle = document.querySelector('.nav-section-title');
+    const submenu = sectionTitle ? sectionTitle.nextElementSibling : null;
+    const STORAGE_KEY = 'sidebar.hse.open'; // clé de persistance
+
+    if (!sectionTitle || !submenu) return;
+
+    // ---- Helpers
+    const isOpen = () => submenu.classList.contains('open');
+    const setOpen = (open) => {
+        submenu.classList.toggle('open', open);
+        sectionTitle.classList.toggle('open', open);
+        localStorage.setItem(STORAGE_KEY, open ? '1' : '0');
+    };
+
+    // ---- Restaurer l’état au chargement
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === '1') setOpen(true);
+
+    // ---- Ouvrir/fermer uniquement en cliquant sur "Responsable HSE"
+    sectionTitle.addEventListener('click', function (e) {
+        e.preventDefault();
+        setOpen(!isOpen());
+    });
+
+    // ---- Quand on clique dans le sous-menu, on force l’état à "ouvert"
+    // (pour qu’il reste ouvert après navigation)
+    submenu.addEventListener('click', function () {
+        localStorage.setItem(STORAGE_KEY, '1');
+    });
+});
+</script>
+
 </aside>

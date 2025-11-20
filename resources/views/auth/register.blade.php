@@ -28,8 +28,8 @@
 
             <!-- Nom -->
             <div>
-                <label for="name" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Nom :*</label>
-                <input type="text" name="name" id="name" required placeholder="Nom complet"
+                <label for="name" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Nom & prénom(s) : *</label>
+                <input type="text" name="name" id="name" required placeholder="Nom&prénom(s)"
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150"
                     value="{{ old('name') }}" autofocus>
             </div>
@@ -52,15 +52,14 @@
                     <option value="Logistique" {{ old('department') == 'Logistique' ? 'selected' : '' }}>Logistique</option>
                     <option value="Administratif" {{ old('department') == 'Administratif' ? 'selected' : '' }}>Administratif</option>
                     <option value="Commercial" {{ old('department') == 'Commercial' ? 'selected' : '' }}>Commercial</option>
-                    <option value="Achats" {{ old('department') == 'Achats' ? 'selected' : '' }}>Achats</option>
-
+                    <option value="Achat" {{ old('department') == 'Achat' ? 'selected' : '' }}>Achat</option>
                 </select>
             </div>
 
             <!-- Code Admin (facultatif) -->
             <div>
                 <label for="admin_code" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Code Admin (facultatif)</label>
-                <input type="text" name="admin_code" id="admin_code" autocomplete="off" placeholder="Entrez le code admin si applicable"
+                <input type="text" name="admin_code" id="admin_code" autocomplete="off" placeholder=" partie reserver a l'administrateur"
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
             </div>
 

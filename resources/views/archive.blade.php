@@ -4,7 +4,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
 <div id="view-archive" class="">
-    <div class="page-header">
+    <div class="page-header flex flex-col items-center mb-6 ">
+    <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="h-10 w-auto mb-3">
         <h1>Archives</h1>
         <p>Anomalies clôturées et archivées</p>
     </div>
@@ -103,23 +104,50 @@ document.addEventListener('DOMContentLoaded', function () {
                     tbody.appendChild(row);
 
                     // Ligne cachée des propositions
-                    const propRow = document.createElement('tr');
-                    propRow.id = `props-${anomaly.id}`;
-                    propRow.classList.add('hidden', 'bg-gray-50');
-                    propRow.innerHTML = `
-                        <td colspan="7" class="px-4 py-2 border">
-                            <strong>Propositions :</strong><br>
-                            ${anomaly.propositions && anomaly.propositions.length > 0
-                                ? anomaly.propositions.map(p => `
-                                    <div class="text-xs">
-                                        • <strong>${p.action}</strong> — ${p.person} <em>(${new Date(p.date).toLocaleDateString()})</em>
-                                    </div>
-                                `).join('')
-                                : '<em class="text-gray-500">Aucune proposition</em>'
-                            }
-                        </td>
-                    `;
-                    tbody.appendChild(propRow);
+  const propRow = document.createElement('tr');
+propRow.id = `props-${anomaly.id}`;
+propRow.classList.add('hidden', 'bg-gray-50');
+
+const hasPropositions = Array.isArray(anomaly.propositions) && anomaly.propositions.length > 0;
+
+const propositionsHTML = hasPropositions
+  ? anomaly.propositions.map(p => `
+      <tr class="border-b last:border-b-0 hover:bg-gray-100 transition-colors">
+        <td class="px-4 py-2 text-sm font-medium text-gray-800">${p.action}</td>
+        <td class="px-4 py-2 text-sm text-gray-700">${p.person}</td>
+        <td class="px-4 py-2 text-sm text-gray-500 italic">${new Date(p.date).toLocaleDateString()}</td>
+      </tr>
+    `).join('')
+  : `<tr><td colspan="3" class="text-center text-sm text-gray-500 italic py-3">Aucune proposition enregistrée</td></tr>`;
+
+propRow.innerHTML = `
+  <td colspan="7" class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+    <div class="mb-3 flex items-center space-x-2">
+      <svg class="h-4 w-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 9v2m0 4v2m9-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span class="text-sm font-semibold text-gray-700 uppercase tracking-wide">Propositions</span>
+    </div>
+
+    <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+      <table class="min-w-full border-collapse">
+        <thead class="bg-gray-100  text-gray-600">
+          <tr>
+            <th class="px-4 py-2 text-left font-semibold">Action</th>
+            <th class="px-4 py-2 text-left font-semibold">Personne</th>
+            <th class="px-4 py-2 text-left font-semibold">Date prévue</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${propositionsHTML}
+        </tbody>
+      </table>
+    </div>
+  </td>
+`;
+
+tbody.appendChild(propRow);
+
                 });
 
                 // Pagination

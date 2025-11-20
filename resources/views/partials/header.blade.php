@@ -83,20 +83,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // ===== THEME =====
-    const themeToggle = document.getElementById('themeToggle');
-    const sunIcon = document.getElementById('sunIcon');
-    const moonIcon = document.getElementById('moonIcon');
-    const savedTheme = localStorage.getItem('eres_theme') || 'light';
-    if(savedTheme==='dark'){body.classList.add('dark-mode'); sunIcon.style.display='block'; moonIcon.style.display='none';}
-    else {sunIcon.style.display='none'; moonIcon.style.display='block';}
-    themeToggle.addEventListener('click',()=>{
-        body.classList.toggle('dark-mode');
-        const currentTheme = body.classList.contains('dark-mode')?'dark':'light';
-        sunIcon.style.display = currentTheme==='dark'?'block':'none';
-        moonIcon.style.display = currentTheme==='dark'?'none':'block';
-        localStorage.setItem('eres_theme',currentTheme);
-    });
+   // ===== THEME TOGGLE - Version 2025 (Propre, robuste & respecte le thème système) =====
+const themeToggle = document.getElementById('themeToggle');
+const sunIcon = document.getElementById('sunIcon');
+const moonIcon = document.getElementById('moonIcon');
+
+// Fonction pour appliquer le thème
+function applyTheme(theme) {
+    if (theme === 'dark') {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+    } else {
+        document.documentElement.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+    }
+    localStorage.setItem('eres_theme', theme);
+}
+
+// Détection du thème sauvegardé OU du thème système
+const savedTheme = localStorage.getItem('eres_theme');
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+if (savedTheme) {
+    applyTheme(savedTheme);
+} else if (prefersDark) {
+    applyTheme('dark');
+} else {
+    applyTheme('light');
+}
+
+// Écoute du changement de thème système en temps réel
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (!localStorage.getItem('eres_theme')) { // seulement si l'utilisateur n'a pas choisi manuellement
+        applyTheme(e.matches ? 'dark' : 'light');
+    }
+});
+
+// Clique sur le bouton
+themeToggle.addEventListener('click', () => {
+    const isDark = document.documentElement.classList.contains('dark-mode');
+    applyTheme(isDark ? 'light' : 'dark');
+});
+
 
     // ===== USER PROFILE =====
     const userMenuBtn = document.getElementById('userMenuBtn');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\models\Archive;
 
 class DashboardController extends Controller
 {
@@ -50,6 +51,23 @@ class DashboardController extends Controller
         return view('corbeille');
     }
 
+public function closed(Request $request)
+{
+    $query = Archive::query()->with('closer');
 
-    
+    if ($request->query('page') === 'all') {
+        return response()->json([
+            'anomalies' => $query->get()
+        ]);
+    }
+
+    $perPage = 15;
+    $archives = $query->paginate($perPage);
+
+    return response()->json([
+        'anomalies' => $archives->items(),
+        'current_page' => $archives->currentPage(),
+        'last_page' => $archives->lastPage(),
+    ]);
+}
 }
