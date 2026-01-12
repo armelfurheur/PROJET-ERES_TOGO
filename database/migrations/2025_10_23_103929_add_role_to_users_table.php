@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->default('user'); // Ajoute le champ role avec 'user' par défaut
+            if (!Schema::hasColumn('users', 'role')) {
+    $table->string('role')->default('user');
+}
+
         });
     }
 

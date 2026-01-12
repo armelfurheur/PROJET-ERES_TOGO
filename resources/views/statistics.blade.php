@@ -6,7 +6,7 @@
     <div class="welcome-container bg-gradient-to-r from-blue-200 to-indigo-400 text-white rounded-2xl shadow-xl p-6 text-center">
         <h2 class="welcome-title" id="welcomeTitle">Bienvenue dans votre espace HSE</h2>
         <p class="welcome-subtitle text-blue-100 mx-auto max-w-2xl">
-            Suivez et gérez efficacement les anomalies, les propositions d'actions correctives et générez des rapports détaillés pour optimiser la sécurité et l'environnement de travail de ERES-TOGO.
+            Suivez et gérez efficacement sur ERESriskalert les anomalies, les propositions d'actions correctives et générez des rapports détaillés pour optimiser la sécurité et l'environnement de travail de ERES-TOGO.
         </p>
     </div>
 

@@ -1,32 +1,33 @@
-<?php // <-- TRÈS IMPORTANT, DOIT ÊTRE LA PREMIÈRE LIGNE
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-// Le nom de la classe DOIT correspondre à la fin du nom du fichier
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            
+            // ON REMPLACE DÉFINITIVEMENT 'name' PAR :
+            $table->string('firstname', 100);   // Prénom(s)
+            $table->string('lastname', 100);    // Nom de famille (en majuscules)
+
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
-            $table->string('department')->nullable(); 
+
+            // ERES-TOGO
+            $table->string('department'); // Technique, Logistique, etc.
+            $table->enum('role', ['user', 'admin'])->default('user');
+
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

@@ -6,7 +6,7 @@
         <!-- Header -->
         <div class="flex flex-col items-center mb-6">
             <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="h-10 w-auto mb-3">
-            <h2 class="text-2xl font-bold text-gray-700">Rapports de remontée d’anomalies</h2>
+            <h2 class="text-2xl font-bold text-gray-700">Rapports ERESriskalert</h2>
             <p class="text-gray-500 text-sm mt-1">Générez et exportez vos rapports selon la période souhaitée.</p>
         </div>
 
@@ -46,12 +46,12 @@
 
             <!-- Graphique principal -->
             <div class="bg-white p-4 shadow rounded-lg mb-6 max-w-3xl mx-auto">
-                <h3 class="font-semibold text-gray-700 mb-2 text-center">Statistiques visuelles</h3>
+                <h3 class="font-semibold text-gray-700 mb-2 text-center" id="mainChartTitle">Statistiques visuelles</h3>
                 <canvas id="reportChart" height="80"></canvas>
             </div>
 
-            <!-- Graphique horizontal -->
-            <div class="bg-white p-4 shadow rounded-lg mb-6 max-w-3xl mx-auto">
+            <!-- Graphique horizontal - Sera caché en mode année -->
+            <div id="horizontalChartContainer" class="bg-white p-4 shadow rounded-lg mb-6 max-w-3xl mx-auto">
                 <h3 class="font-semibold text-gray-700 mb-2 text-center">Totaux anomalies ouvertes vs clôturées</h3>
                 <canvas id="reportChartHorizontal" height="120"></canvas>
             </div>
@@ -100,6 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const reportStats = document.getElementById('reportStats');
     const anomaliesTableBody = document.getElementById('anomaliesTableBody');
     const exportButtonsContainer = document.getElementById('exportButtonsContainer');
+    const mainChartTitle = document.getElementById('mainChartTitle');
+    const horizontalChartContainer = document.getElementById('horizontalChartContainer');
 
     let reportChart = null, horizontalChart = null, currentReportData = null;
 
@@ -172,6 +174,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const stats = data.statistiques || {};
         const periode = data.periode || {};
 
+        // Mettre à jour le titre du graphique principal
+        mainChartTitle.textContent = type === 'year' 
+            ? 'Statistiques visuelles par année' 
+            : 'Statistiques visuelles par mois';
+
         reportStats.innerHTML = `
             <div class="bg-white p-4 rounded-lg shadow text-gray-700">
                 <p class="text-xs text-gray-500 uppercase">Période</p>
@@ -232,129 +239,177 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx2 = document.getElementById('reportChartHorizontal').getContext('2d');
         Chart.register(ChartDataLabels);
 
+        // Gestion de l'affichage du graphique horizontal
+        if (type === 'year') {
+            // Cacher le graphique horizontal en mode année
+            horizontalChartContainer.style.display = 'none';
+        } else {
+            // Afficher le graphique horizontal en mode mois
+            horizontalChartContainer.style.display = 'block';
+        }
+
         if (type === 'month') {
             const labels = Object.keys(data.statistiques?.par_gravite || {});
             const values = Object.values(data.statistiques?.par_gravite || {});
             const total = values.reduce((a,b) => a + b, 0);
             reportChart = new Chart(ctx1, {
                 type: 'doughnut',
-                data: { labels, datasets: [{ data: values, backgroundColor: ['#ddda14ff','#cc1717ff','#08ea53ff','#22c55e'] }] },
+                data: { labels, datasets: [{ data: values, backgroundColor: ['#ddda14ff','#cc1717ff',,'#22c55e'] }] },
                 options: { responsive: true, plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', formatter: val => total ? ((val/total)*100).toFixed(1)+'%' : '' } } },
                 plugins: [ChartDataLabels]
             });
         } else {
             const months = ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
-            const values = data.statistiques?.mensuel || Array(12).fill(0);
-            const total = values.reduce((a,b) => a + b, 0);
+            const totalAnomalies = data.statistiques?.mensuel || Array(12).fill(0);
+            const anomaliesCloturees = data.statistiques?.mensuel_cloturees || Array(12).fill(0);
+            
             reportChart = new Chart(ctx1, {
                 type: 'bar',
-                data: { labels: months, datasets: [{ label: 'Anomalies', data: values, backgroundColor: '#3b82f6' }] },
-                options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { datalabels: { anchor: 'end', align: 'top', color: '#333', formatter: val => total ? ((val/total)*100).toFixed(1)+'%' : '' } } },
+                data: { 
+                    labels: months, 
+                    datasets: [
+                        {
+                            label: 'Total Anomalies',
+                            data: totalAnomalies,
+                            backgroundColor: '#ee2721ff',
+                            borderRadius:5
+                        },
+                        {
+                            label: 'Anomalies Clôturées',
+                            data: anomaliesCloturees,
+                            backgroundColor: '#22c55e',
+                            borderRadius:5
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    scales: { y: { beginAtZero: true } }, 
+                    plugins: { 
+                        datalabels: { 
+                            anchor: 'end', 
+                            align: 'top', 
+                            color: '#333',
+                            formatter: function(value, context) {
+                                // Afficher la valeur absolue pour les deux datasets
+                                return value > 0 ? value : '';
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    } 
+                },
                 plugins: [ChartDataLabels]
             });
         }
 
-        const labelsH = type === 'year' ? ['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'] : ['Totaux du mois'];
-        const ouvertes = type === 'year' ? (data.statistiques?.mensuel_ouvertes || Array(12).fill(0)) : [data.statistiques?.ouvertes || 0];
-        const cloturees = type === 'year' ? (data.statistiques?.mensuel_cloturees || Array(12).fill(0)) : [data.statistiques?.cloturees || 0];
-        const totaux = ouvertes.map((v, i) => v + (cloturees[i] || 0));
-        const percentOuvertes = ouvertes.map((v, i) => totaux[i] ? ((v / totaux[i]) * 100).toFixed(1) : 0);
-        const percentCloturees = cloturees.map((v, i) => totaux[i] ? ((v / totaux[i]) * 100).toFixed(1) : 0);
+        // Créer le graphique horizontal seulement pour le mode mois
+        if (type === 'month') {
+            const labelsH = ['Totaux du mois'];
+            const ouvertes = [data.statistiques?.ouvertes || 0];
+            const cloturees = [data.statistiques?.cloturees || 0];
 
-const cumulOuvertes = [];
-const cumulCloturees = [];
-let totalCumul = 0;
-let cloturesCumul = 0;
+            const cumulOuvertes = [];
+            const cumulCloturees = [];
+            let totalCumul = 0;
+            let cloturesCumul = 0;
 
-for (let i = 0; i < labelsH.length; i++) {
-    totalCumul += (ouvertes[i] + cloturees[i]); 
-    cloturesCumul += cloturees[i]; 
-    
-    cumulOuvertes.push(totalCumul);
-    cumulCloturees.push(cloturesCumul);
-}
-
-const percentCumulCloturees = cumulCloturees.map((val, i) => 
-    cumulOuvertes[i] > 0 ? Math.round((val / cumulOuvertes[i]) * 100) : 0
-);
-
-horizontalChart = new Chart(ctx2, {
-    type: 'bar', 
-    data: {
-        labels: labelsH,
-        datasets: [
-            {
-                label: 'Total Anomalies',
-                data: cumulOuvertes,
-                backgroundColor: '#f50b0bff',
-                borderColor: '#f50b0bff',
-                borderWidth: 1,
-                borderRadius: 10,
-                borderSkipped: false
-            },
-            {
-                label: 'Anomalies Clôturées',
-                data: cumulCloturees,
-                backgroundColor: '#22c55e',
-                borderColor: '#22c55e',
-                borderWidth: 1,
-                borderRadius: 10,
-                borderSkipped: false
+            for (let i = 0; i < labelsH.length; i++) {
+                totalCumul += (ouvertes[i] + cloturees[i]); 
+                cloturesCumul += cloturees[i]; 
+                
+                cumulOuvertes.push(totalCumul);
+                cumulCloturees.push(cloturesCumul);
             }
-        ]
-    },
-    options: {
-        responsive: true,
-        categoryPercentage: 0.1,    
-        barPercentage: 0.80,        
-        scales: {
-            y: {
-                beginAtZero: true,
-                title: { display: true, text: "Nombre d'anomalies (Cumulé)" }
-            },
-            x: {
-                title: { display: true, text: type === 'year' ? 'Mois' : 'Période' }
-            }
-        },
-        plugins: {
-            legend: { position: 'bottom' },
-            tooltip: {
-                callbacks: {
-                    label: ctx => {
-                        const i = ctx.dataIndex;
-                        const val = ctx.raw;
-                        if (ctx.dataset.label === 'Total Anomalies') {
-                            return `Total: ${val} anomalies`;
-                        } else {
-                            const pct = percentCumulCloturees[i];
-                            return `Clôturées: ${val} (${pct}%)`;
+
+            const percentCumulCloturees = cumulCloturees.map((val, i) => 
+                cumulOuvertes[i] > 0 ? Math.round((val / cumulOuvertes[i]) * 100) : 0
+            );
+
+            horizontalChart = new Chart(ctx2, {
+                type: 'bar', 
+                data: {
+                    labels: labelsH,
+                    datasets: [
+                        {
+                            label: 'Total Anomalies',
+                            data: cumulOuvertes,
+                            backgroundColor: '#f50b0bff',
+                            borderColor: '#f50b0bff',
+                            borderWidth: 1,
+                            borderRadius: 10,
+                            borderSkipped: false
+                        },
+                        {
+                            label: 'Anomalies Clôturées',
+                            data: cumulCloturees,
+                            backgroundColor: '#22c55e',
+                            borderColor: '#22c55e',
+                            borderWidth: 1,
+                            borderRadius: 10,
+                            borderSkipped: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    categoryPercentage: 0.1,    
+                    barPercentage: 0.80,        
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: "Nombre d'anomalies (Cumulé)" }
+                        },
+                        x: {
+                            title: { display: true, text: 'Période' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => {
+                                    const i = ctx.dataIndex;
+                                    const val = ctx.raw;
+                                    if (ctx.dataset.label === 'Total Anomalies') {
+                                        return `Total: ${val} anomalies`;
+                                    } else {
+                                        const pct = percentCumulCloturees[i];
+                                        return `Clôturées: ${val} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold' },
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4,
+                            formatter: (val, ctx) => {
+                                const i = ctx.dataIndex;
+                                if (ctx.dataset.label === 'Total Anomalies') {
+                                    return val > 0 ? `${val}` : '';
+                                } else {
+                                    const pct = percentCumulCloturees[i];
+                                    return val > 0 ? `${val} (${pct}%)` : '';
+                                }
+                            }
                         }
                     }
-                }
-            },
-            datalabels: {
-                color: '#fff',
-                font: { weight: 'bold' },
-                anchor: 'end',
-                align: 'top',
-                offset: 4,
-                formatter: (val, ctx) => {
-                    const i = ctx.dataIndex;
-                    if (ctx.dataset.label === 'Total Anomalies') {
-                        return val > 0 ? `${val}` : '';
-                    } else {
-                        const pct = percentCumulCloturees[i];
-                        return val > 0 ? `${val} (${pct}%)` : '';
-                    }
-                }
-            }
+                },
+                plugins: [ChartDataLabels]
+            });
         }
-    },
-    plugins: [ChartDataLabels]
-});
     }
-
- 
+    
     function exportToPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF('p', 'mm', 'a4');
@@ -368,7 +423,7 @@ horizontalChart = new Chart(ctx2, {
 
             // Titre
             doc.setFontSize(16);
-            doc.text("Rapport de remontée d’anomalies", pageWidth / 2, y, { align: 'center' });
+            doc.text("Rapport de remontée d'anomalies", pageWidth / 2, y, { align: 'center' });
             y += 12;
 
             // Période
@@ -434,7 +489,6 @@ horizontalChart = new Chart(ctx2, {
         }, 1000);
     }
 
- 
     function exportToCSV() {
         if (!currentReportData?.data?.length) {
             toastr.error('Aucune donnée à exporter.');

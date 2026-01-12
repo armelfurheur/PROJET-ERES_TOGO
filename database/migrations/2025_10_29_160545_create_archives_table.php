@@ -16,7 +16,6 @@ return new class extends Migration
             
             // Référence à l'anomalie originale
             $table->foreignId('anomaly_id')
-                  ->unique()
                   ->constrained('anomalies')
                   ->onDelete('cascade');
 
@@ -26,11 +25,11 @@ return new class extends Migration
             $table->string('localisation')->nullable();
             $table->text('description');
             $table->text('action')->nullable();
-            $table->string('preuve')->nullable(); // Chemin du fichier
+            $table->string('preuve')->nullable();
 
-            // Dates
-            $table->timestamp('datetime');        // Date de signalement
-            $table->timestamp('closed_at');       // Date de clôture
+            // Dates (corrigé)
+            $table->timestamp('datetime')->nullable();     
+            $table->timestamp('closed_at')->nullable();   
 
             // Clôture
             $table->foreignId('closed_by')
@@ -38,16 +37,16 @@ return new class extends Migration
                   ->constrained('users')
                   ->onDelete('set null');
 
-            // Statut (redondant avec closed_at, mais utile pour affichage rapide)
+            // Statut
             $table->enum('status', ['Clos'])->default('Clos');
 
-            // Propositions (stockées en JSON pour flexibilité)
+            // Propositions
             $table->json('proposals')->nullable();
 
-            // Timestamps
+            // Timestamps Laravel
             $table->timestamps();
 
-            // Index pour performances
+            // Index
             $table->index('closed_at');
             $table->index('departement');
             $table->index('rapporte_par');

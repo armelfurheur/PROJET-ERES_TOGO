@@ -38,7 +38,7 @@
                 <table class="w-full table-auto border-collapse border border-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="border px-2 py-1">ID</th>
+                            <th class="border px-2 py-1">N°</th>
                             <th class="border px-2 py-1">Date/Heure</th>
                             <th class="border px-2 py-1">Rapporté par</th>
                             <th class="border px-2 py-1">Département</th>

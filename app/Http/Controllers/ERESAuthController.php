@@ -13,104 +13,98 @@ use App\Mail\ResetPasswordMail;
 class ERESAuthController extends Controller
 {
     /**
-     * Détermine la redirection après connexion ou inscription.
+     * Redirection après connexion ou inscription
      */
     protected function redirectTo()
     {
-        if (Auth::user()->role === 'admin') {
-            return '/dashboard';
-        }
-        return '/formulaire';
+        return Auth::user()->role === 'admin' ? '/dashboard' : '/formulaire';
     }
 
-    /**
-     * Affiche la page de connexion.
-     */
+    // ==================================================================
+    // CONNEXION
+    // ==================================================================
+
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    /**
-     * Traite la tentative de connexion.
-     */
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
             return response()->json([
-                'success' => true,
-                'message' => 'Connexion réussie !',
+                'success'  => true,
+                'message'  => 'Connexion réussie !',
                 'redirect' => $this->redirectTo(),
-            ], 200);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email ou mot de passe incorrect.',
-            ], 401);
+            ]);
         }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Email ou mot de passe incorrect.',
+        ], 401);
     }
 
-    /**
-     * Affiche le formulaire d'inscription.
-     */
+    // ==================================================================
+    // INSCRIPTION (mise à jour pour firstname + lastname)
+    // ==================================================================
+
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    /**
-     * Traite la nouvelle inscription.
-     */
-    public function register(Request $request)
-    {
-        try {
-            $request->validate([
-                'name'       => 'required|string|max:255',
-                'email'      => 'required|string|email|max:255|unique:users',
-                'department' => 'required|string|in:Technique,Logistique,Administratif,Commercial,Achat',
-                'password'   => 'required|string|min:8|confirmed',
-                'admin_code' => 'nullable|string', // Code admin facultatif
-            ]);
+  public function register(Request $request)
+{
+    try {
+        $request->validate([
+            'firstname'  => 'required|string|max:100',
+            'lastname'   => 'required|string|max:100',
+            'email'      => 'required|email|unique:users,email|max:255',
+            'department' => 'required|string|in:Technique,Logistique,Administratif,Commercial,Achat',
+            'password'   => 'required|string|min:8|confirmed',
+            'admin_code' => 'nullable|string|max:50',
+        ]);
 
-            // Définir le code secret pour les administrateurs
-            $adminCode = 'Eresadmin2025';
-            $role = $request->admin_code === $adminCode ? 'admin' : 'user';
-            // Si c'est un admin, forcer le département à "HSE"
-            $department = $role === 'admin' ? 'HSE' : $request->department;
+        // Code admin secret
+        $isAdmin = $request->admin_code === 'Eresadmin2026';
 
-            $user = User::create([
-                'name'       => $request->name,
-                'email'      => $request->email,
-                'department' => $department,
-                'password'   => Hash::make($request->password),
-                'role'       => $role,
-            ]);
+        $user = User::create([
+            'firstname'  => trim($request->firstname),
+            'lastname'   => strtoupper(trim($request->lastname)),
+            'email'      => $request->email,
+            'department' => $isAdmin ? 'HSE' : $request->department,
+            'role'       => $isAdmin ? 'admin' : 'user',
+            'password'   => Hash::make($request->password),
+        ]);
 
-            Auth::login($user);
+        Auth::login($user);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Inscription réussie ! Bienvenue sur la plateforme ERES.',
-                'redirect' => $this->redirectTo(),
-            ], 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'errors'  => $e->errors(),
-            ], 422);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Une erreur est survenue lors de l\'inscription : ' . $e->getMessage(),
-            ], 500);
-        }
+        return response()->json([
+            'success'  => true,
+            'message'  => 'Inscription réussie ! Bienvenue ' . $user->firstname . ' ' . $user->lastname,
+            'redirect' => $isAdmin ? '/dashboard' : '/formulaire',
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'errors'  => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Erreur inscription : ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur serveur : ' . $e->getMessage(),
+        ], 500);
     }
+}
+    // ==================================================================
+    // RÉINITIALISATION MOT DE PASSE
+    // ==================================================================
 
-    /**
-     * Formulaire de réinitialisation du mot de passe.
-     */
     public function showResetForm(Request $request, $token = null)
     {
         return view('auth.reset-password', [
@@ -119,45 +113,25 @@ class ERESAuthController extends Controller
         ]);
     }
 
-    /**
-     * Envoie un lien de réinitialisation par email.
-     */
     public function sendResetLinkEmail(Request $request)
     {
         try {
             $request->validate(['email' => 'required|email']);
 
-            $user = User::where('email', $request->email)->first();
+            $status = Password::sendResetLink($request->only('email'));
 
-            if (!$user) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Aucun utilisateur trouvé avec cet email.',
-                ], 404);
-            }
+            return $status === Password::RESET_LINK_SENT
+                ? response()->json(['success' => true, 'message' => __($status)])
+                : response()->json(['success' => false, 'message' => __($status)], 400);
 
-            // Génération du token
-            $token = Password::createToken($user);
-            $resetUrl = url('/password/reset/' . $token . '?email=' . urlencode($user->email));
-
-            // Envoi de l’e-mail personnalisé
-            Mail::to($user->email)->send(new ResetPasswordMail($resetUrl));
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Un lien de réinitialisation a été envoyé à votre email.',
-            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+                'message' => 'Erreur lors de l\'envoi du lien.',
             ], 500);
         }
     }
 
-    /**
-     * Réinitialise le mot de passe.
-     */
     public function reset(Request $request)
     {
         try {
@@ -169,45 +143,42 @@ class ERESAuthController extends Controller
 
             $status = Password::reset(
                 $request->only('email', 'password', 'password_confirmation', 'token'),
-                function ($user, $password) {
+                function ($user) use ($request) {
                     $user->forceFill([
-                        'password' => Hash::make($password),
+                        'password' => Hash::make($request->password),
                     ])->save();
                 }
             );
 
             return $status === Password::PASSWORD_RESET
                 ? response()->json([
-                    'success' => true,
-                    'message' => 'Mot de passe réinitialisé avec succès.',
+                    'success'  => true,
+                    'message'  => 'Mot de passe réinitialisé avec succès !',
                     'redirect' => route('login'),
-                ], 200)
+                ])
                 : response()->json([
                     'success' => false,
-                    'message' => 'Erreur lors de la réinitialisation du mot de passe.',
+                    'message' => 'Lien invalide ou expiré.',
                 ], 422);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Une erreur est survenue : ' . $e->getMessage(),
+                'message' => 'Une erreur est survenue.',
             ], 500);
         }
     }
 
-    /**
-     * Déconnecte l'utilisateur.
-     */
-   /**
- * Déconnecte l'utilisateur et affiche la page de logout.
- */
-public function logout(Request $request)
-{
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
+    // ==================================================================
+    // DÉCONNEXION
+    // ==================================================================
 
-    // Affiche la page logout (resources/views/auth/logout.blade.php)
-    return view('auth.logout');
-}
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
+        return view('auth.logout');
+    }
 }

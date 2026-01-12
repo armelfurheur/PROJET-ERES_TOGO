@@ -31,11 +31,13 @@
         <!-- User profile -->
         <div class="user-profile-dropdown">
             <div class="user-badge" id="userMenuBtn">
-                <span id="userInitials">{{ strtoupper(substr(Auth::user()->name ?? 'U',0,2)) }}</span>
+                {{-- Initiales firstname + lastname --}}
+                <span id="userInitials">{{ strtoupper(substr(Auth::user()->firstname ?? 'U',0,1) . substr(Auth::user()->lastname ?? '',0,1)) }}</span>
             </div>
             <div class="user-dropdown-menu" id="userDropdown">
                 <div class="user-dropdown-info">
-                    <div id="dropdownUserName">{{ Auth::user()->name ?? 'Utilisateur' }}</div>
+                    {{-- Nom complet --}}
+                    <div id="dropdownUserName">{{ Auth::user()->firstname ?? 'Utilisateur' }} {{ Auth::user()->lastname ?? '' }}</div>
                     <div id="dropdownUserEmail">{{ Auth::user()->email ?? 'email@example.com' }}</div>
                 </div>
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
@@ -68,12 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => res.json())
             .then(data => {
                 const anomalies = data.anomalies || [];
-                const totalAnomaliesToday = anomalies.length; // juste le nombre total d'anomalies aujourd'hui
+                const totalAnomaliesToday = anomalies.length;
                 updateNotificationBadge(totalAnomaliesToday);
             })
             .catch(err => console.error("Erreur notifications:", err));
     }
-
     function updateNotificationBadge(count) {
         notificationBadge.textContent = count>99?'99+':count;
         notificationBadge.style.display = count>0?'flex':'none';
@@ -83,77 +84,65 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-   // ===== THEME TOGGLE - Version 2025 (Propre, robuste & respecte le thème système) =====
-const themeToggle = document.getElementById('themeToggle');
-const sunIcon = document.getElementById('sunIcon');
-const moonIcon = document.getElementById('moonIcon');
-
-// Fonction pour appliquer le thème
-function applyTheme(theme) {
-    if (theme === 'dark') {
-        document.documentElement.classList.add('dark-mode');
-        document.body.classList.add('dark-mode');
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
-    } else {
-        document.documentElement.classList.remove('dark-mode');
-        document.body.classList.remove('dark-mode');
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
+    // ===== THEME TOGGLE =====
+    const themeToggle = document.getElementById('themeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+    function applyTheme(theme) {
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+            document.body.classList.add('dark-mode');
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        } else {
+            document.documentElement.classList.remove('dark-mode');
+            document.body.classList.remove('dark-mode');
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        }
+        localStorage.setItem('eres_theme', theme);
     }
-    localStorage.setItem('eres_theme', theme);
-}
-
-// Détection du thème sauvegardé OU du thème système
-const savedTheme = localStorage.getItem('eres_theme');
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-if (savedTheme) {
-    applyTheme(savedTheme);
-} else if (prefersDark) {
-    applyTheme('dark');
-} else {
-    applyTheme('light');
-}
-
-// Écoute du changement de thème système en temps réel
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-    if (!localStorage.getItem('eres_theme')) { // seulement si l'utilisateur n'a pas choisi manuellement
-        applyTheme(e.matches ? 'dark' : 'light');
-    }
-});
-
-// Clique sur le bouton
-themeToggle.addEventListener('click', () => {
-    const isDark = document.documentElement.classList.contains('dark-mode');
-    applyTheme(isDark ? 'light' : 'dark');
-});
-
+    const savedTheme = localStorage.getItem('eres_theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (savedTheme) applyTheme(savedTheme);
+    else if (prefersDark) applyTheme('dark');
+    else applyTheme('light');
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.getItem('eres_theme')) applyTheme(e.matches ? 'dark' : 'light');
+    });
+    themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark-mode');
+        applyTheme(isDark ? 'light' : 'dark');
+    });
 
     // ===== USER PROFILE =====
     const userMenuBtn = document.getElementById('userMenuBtn');
     const userDropdown = document.getElementById('userDropdown');
     const logoutBtn = document.getElementById('logoutBtn');
-    const currentUser = {name:"{{ Auth::user()->name ?? 'Utilisateur' }}", email:"{{ Auth::user()->email ?? 'email@example.com' }}"};
+    const currentUser = {
+        firstname:"{{ Auth::user()->firstname ?? 'Utilisateur' }}",
+        lastname:"{{ Auth::user()->lastname ?? '' }}",
+        email:"{{ Auth::user()->email ?? 'email@example.com' }}"
+    };
 
     function updateUserInterface(){
-        const initials = currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase();
-        document.getElementById('userInitials').textContent = initials;
-        document.getElementById('dropdownUserName').textContent = currentUser.name;
-        document.getElementById('dropdownUserEmail').textContent = currentUser.email;
+       
         const welcomeTitle = document.getElementById('welcomeTitle');
-        if(welcomeTitle) welcomeTitle.textContent = `Bienvenue, ${currentUser.name}`;
+        if(welcomeTitle) welcomeTitle.textContent = `Bienvenue M./Mme ${currentUser.lastname}`;
     }
 
-    userMenuBtn.addEventListener('click',e=>{e.stopPropagation(); userDropdown.classList.toggle('show');});
-    document.addEventListener('click',()=>userDropdown.classList.remove('show'));
-    logoutBtn.addEventListener('click',()=>document.getElementById('logout-form').submit());
+    userMenuBtn.addEventListener('click', e=>{ e.stopPropagation(); userDropdown.classList.toggle('show'); });
+    document.addEventListener('click', ()=>userDropdown.classList.remove('show'));
+    logoutBtn.addEventListener('click', ()=>document.getElementById('logout-form').submit());
 
-    // ===== INITIALIZE =====
-    function initializeNavbar(){updateUserInterface(); loadNotifications(); setInterval(loadNotifications,30000);}
+    function initializeNavbar(){
+        updateUserInterface();
+        loadNotifications();
+        setInterval(loadNotifications,30000);
+    }
     initializeNavbar();
 
-    // ===== TEST FUNCTION (simulate new anomaly) =====
+    // Test: simuler nouvelle anomalie
     window.simulateNewAnomaly = function(){
         let currentCount = parseInt(notificationBadge.textContent)||0;
         currentCount++;

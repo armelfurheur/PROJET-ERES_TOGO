@@ -3,19 +3,29 @@
 @section('title', 'Connexion | ERES-TOGO')
 
 @section('content')
-<div class="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-    <div class="w-full max-w-md bg-white rounded-xl shadow-2xl p-6 border border-gray-200">
+<div class="relative w-full min-h-screen flex items-center justify-center overflow-hidden"
+     style="background: url('{{ asset('img/depot.jpg') }}') no-repeat center center / cover;">
+
+    <!-- Overlay sombre pour lisibilité -->
+    <div class="absolute inset-0 bg-blue-900 bg-opacity-60"></div>
+
+    <div class="relative w-full max-w-md bg-white rounded-xl shadow-2xl p-6 border border-gray-200 z-10">
         <div class="text-center mb-6">
             <img src="{{ asset('img/ERES.jpg') }}" alt="Logo de l'application" class="h-14 w-auto mx-auto mb-3">
-            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800">Se Connecter</h2>
+
+            <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800">
+                Se Connecter à <span class="highlight pulse">ERESriskAlert</span>
+            </h2>
         </div>
 
         {{-- Formulaire --}}
         <form id="loginForm" class="space-y-5">
             @csrf
             <div>
-                <label for="email" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">Adresse E-mail :*</label>
-                <input type="email" name="email"  id="email" value="{{ old('email') }}" required
+                <label for="email" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">
+                    Adresse E-mail :*
+                </label>
+                <input type="email" name="email" id="email" value="{{ old('email') }}" required
                     placeholder="Entrer votre Email"
                     class="w-full border rounded-lg px-4 py-2 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
             </div>
@@ -30,13 +40,13 @@
                         class="w-full border rounded-lg px-4 py-2 pr-10 text-sm md:text-base focus:ring-green-500 focus:border-green-500 transition duration-150">
                     <button type="button" class="toggle-password absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-green-600 focus:outline-none"
                             data-target="password">
-                        <svg class="eye-open hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <svg class="eye-open hidden w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <svg class="eye-closed w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M3 3l18 18M10.477 10.477A3 3 0 0012 15a3 3 0 001.523-.423M9.88 9.88A4.992 4.992 0 0112 9c2.761 0 5 2.239 5 5a4.992 4.992 0 01-.88 2.12M15 15l3 3M9.88 9.88L7 7" />
                         </svg>
@@ -60,52 +70,42 @@
     </div>
 </div>
 
-{{-- === TOASTR JS + CSS === --}}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
+{{-- === CSS supplémentaire pour fond et highlight === --}}
 <style>
-    /* Toastr centré et professionnel */
-    #toast-container {
-        position: fixed !important;
-        top: 30% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 70%;
-        max-width: 350px;
-        z-index: 999999;
-        text-align: center;
+    html, body {
+        width: 100%;
+        height: 100%;
     }
 
-    .toast {
-        border-radius: 12px !important;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-        padding: 14px 18px !important;
-        font-size: 15px !important;
+    .highlight {
+        background: linear-gradient(90deg, #07411cff, #22c55e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 900;
+        font-size: 1.8rem;
+        display: inline-block;
+        transition: transform 0.3s ease, filter 0.3s ease;
     }
 
-    .toast-success {
-        background-color: #16a34a !important;
+    .highlight:hover {
+        transform: scale(1.1) rotate(-2deg);
+        filter: drop-shadow(0 4px 8px rgba(34, 197, 94, 0.6));
+        cursor: pointer;
     }
 
-    .toast-error {
-        background-color: #dc2626 !important;
+    .highlight.pulse {
+        animation: pulse 2s infinite;
     }
 
-    .toast-title {
-        font-weight: 700 !important;
-    }
-
-    .toast-message {
-        font-weight: 500 !important;
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
     }
 </style>
 
-{{-- === SCRIPT LOGIN AJAX AVEC TOASTR CENTRÉ === --}}
+{{-- === JS Login / Toggle Password === --}}
 <script>
 $(document).ready(function () {
-    // Gestion de l'affichage du mot de passe
     $('.toggle-password').on('click', function () {
         const targetId = $(this).data('target');
         const input = $('#' + targetId);
@@ -120,7 +120,6 @@ $(document).ready(function () {
 
     $('#loginForm').on('submit', function (e) {
         e.preventDefault();
-
         $('#spinner').removeClass('hidden');
         $('#btnText').text('Connexion...');
         $('#loginBtn').attr('disabled', true);
@@ -131,10 +130,8 @@ $(document).ready(function () {
             data: $(this).serialize(),
             success: function (response) {
                 if (response.success) {
-                    toastr.success('Connexion réussie 🎉<br>Bienvenue sur ERES-TOGO !', 'Succès');
-                    setTimeout(() => {
-                        window.location.href = response.redirect;
-                    }, 2000);
+                    toastr.success('Connexion réussie 🎉', 'Succès');
+                    setTimeout(() => window.location.href = response.redirect, 2000);
                 } else {
                     toastr.error(response.message || 'Erreur de connexion', 'Erreur');
                 }
@@ -142,7 +139,7 @@ $(document).ready(function () {
             error: function (xhr) {
                 let message = 'Une erreur est survenue. Veuillez réessayer.';
                 if (xhr.status === 401) {
-                    message = 'Email ou mot de passe incorrect ❌<br>Veuillez réessayer.';
+                    message = 'Email ou mot de passe incorrect ❌';
                 }
                 toastr.error(message, 'Erreur');
             },
