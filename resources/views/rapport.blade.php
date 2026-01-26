@@ -254,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const total = values.reduce((a,b) => a + b, 0);
             reportChart = new Chart(ctx1, {
                 type: 'doughnut',
-                data: { labels, datasets: [{ data: values, backgroundColor: ['#ddda14ff','#cc1717ff',,'#22c55e'] }] },
+                data: { labels, datasets: [{ data: values, backgroundColor: ['#22c55e','#cc1717ff', '#ddda14ff'] }] },
                 options: { responsive: true, plugins: { legend: { position: 'bottom' }, datalabels: { color: '#fff', formatter: val => total ? ((val/total)*100).toFixed(1)+'%' : '' } } },
                 plugins: [ChartDataLabels]
             });

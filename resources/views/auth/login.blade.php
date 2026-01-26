@@ -4,12 +4,49 @@
 
 @section('content')
 <div class="relative w-full min-h-screen flex items-center justify-center overflow-hidden"
+
      style="background: url('{{ asset('img/depot.jpg') }}') no-repeat center center / cover;">
 
     <!-- Overlay sombre pour lisibilité -->
-    <div class="absolute inset-0 bg-blue-900 bg-opacity-60"></div>
+    <div class="absolute inset-0 bg-blue-900 bg-opacity-60">
+        
+    </div>
 
     <div class="relative w-full max-w-md bg-white rounded-xl shadow-2xl p-6 border border-gray-200 z-10">
+        <!-- Bouton Admin sécurisé -->
+<!-- Bouton Admin -->
+<!-- Bouton Accès Admin (dans le formulaire) -->
+<button type="button" id="adminAccessBtn"
+    class="bg-gray-800 text-white px-3 py-1 rounded shadow hover:bg-gray-900 transition text-sm mb-4">
+    ⚙️ Accès Admin
+</button>
+
+<!-- Modal Admin -->
+<div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-30">
+    <div class="bg-white rounded-lg p-6 w-80 shadow-xl">
+        <!-- Titre -->
+        <h3 class="text-lg font-bold mb-4 text-gray-800 text-center">Accès Administrateur</h3>
+
+        <!-- Input mot de passe maître -->
+        <input type="password" id="masterPassword" placeholder="Mot de passe maître"
+            class="w-full border rounded-lg px-3 py-2 mb-4 focus:ring-green-500 focus:border-green-500">
+
+        <!-- Boutons Annuler / Valider -->
+        <div class="flex justify-between">
+            <button id="adminCancel" 
+                class="w-1/2 mr-2 px-3 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                Annuler
+            </button>
+            <button id="adminSubmit" 
+                class="w-1/2 ml-2 px-3 py-2 bg-green-700 text-white rounded hover:bg-green-800">
+                Valider
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
         <div class="text-center mb-6">
             <img src="{{ asset('img/ERES.jpg') }}" alt="Logo de l'application" class="h-14 w-auto mx-auto mb-3">
 
@@ -20,6 +57,7 @@
 
         {{-- Formulaire --}}
         <form id="loginForm" class="space-y-5">
+            
             @csrf
             <div>
                 <label for="email" class="block mb-1 font-semibold text-gray-700 text-sm md:text-base">
@@ -104,6 +142,10 @@
 </style>
 
 {{-- === JS Login / Toggle Password === --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</script>
+
 <script>
 $(document).ready(function () {
     $('.toggle-password').on('click', function () {
@@ -151,5 +193,79 @@ $(document).ready(function () {
         });
     });
 });
+
+
+$(function() {
+    // Ouvrir le modal
+    $('#adminAccessBtn').on('click', function() {
+        $('#adminModal').removeClass('hidden').addClass('flex');
+    });
+
+    // Fermer le modal
+    $('#adminCancel').on('click', function() {
+        $('#adminModal').addClass('hidden').removeClass('flex');
+        $('#masterPassword').val('');
+    });
+
+    // Validation mot de passe maître
+    $('#adminSubmit').on('click', function() {
+        const password = $('#masterPassword').val().trim();
+        if (!password) {
+            alert('Veuillez entrer le mot de passe maître.');
+            return;
+        }
+$.ajax({
+    url: "{{ route('admin.checkMasterPassword') }}",
+    type: "POST",
+    data: {
+        _token: "{{ csrf_token() }}",
+        password: password
+    },
+    success: function(response) {
+        if (response.access) {
+            // Redirige vers la page dashboard admin
+            window.location.href = response.redirect;
+        } else {
+            toastr.error('Mot de passe incorrect ❌', 'Erreur');
+        }
+    },
+    error: function() {
+        toastr.error('Erreur serveur. Veuillez réessayer.', 'Erreur');
+    }
+});
+
+    });
+});
+$('#adminSubmit').click(function () {
+    const password = $('#masterPassword').val().trim();
+
+    if (!password) {
+        alert('Veuillez entrer le mot de passe maître.');
+        return;
+    }
+
+    $.ajax({
+        url: "{{ route('admin.checkMasterPassword') }}",
+        type: "POST",
+        data: {
+            _token: "{{ csrf_token() }}",
+            password: password
+        },
+        success: function(response) {
+            if (response.access) {
+                // Redirection vers le dashboard admin
+                window.location.href = response.redirect;
+            } else {
+                alert('Mot de passe incorrect ❌');
+            }
+        },
+        error: function() {
+            alert('Erreur serveur. Veuillez réessayer.');
+        }
+    });
+});
+
+
+
 </script>
 @endsection

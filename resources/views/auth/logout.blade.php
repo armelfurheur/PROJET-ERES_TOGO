@@ -243,7 +243,7 @@
 
         <p>
             Redirection vers la page de connexion dans
-            <span class="countdown" id="count">10</span> secondes...
+            <span class="countdown" id="count">5</span> secondes...
         </p>
 
         <a href="{{ route('login') }}">Se reconnecter</a>
@@ -252,7 +252,7 @@
 </div>
 
 <script>
-    let countdown = 10;
+    let countdown = 5;
     const countdownEl = document.getElementById('count');
 
     const interval = setInterval(() => {

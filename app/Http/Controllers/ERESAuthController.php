@@ -16,9 +16,18 @@ class ERESAuthController extends Controller
      * Redirection après connexion ou inscription
      */
     protected function redirectTo()
-    {
-        return Auth::user()->role === 'admin' ? '/dashboard' : '/formulaire';
+{
+    $user = Auth::user();
+
+    // Si l'utilisateur est un simple utilisateur → formulaire
+    if ($user->role !== 'admin') {
+        return '/formulaire';
     }
+
+    // Si l'utilisateur est admin → afficher page de choix
+    return '/admin/choix-connexion';
+}
+
 
     // ==================================================================
     // CONNEXION
@@ -69,16 +78,17 @@ class ERESAuthController extends Controller
         ]);
 
         // Code admin secret
-        $isAdmin = $request->admin_code === 'Eresadmin2026';
+        $isAdmin = $request->admin_code === 'r!sk@lert#26';
 
-        $user = User::create([
-            'firstname'  => trim($request->firstname),
-            'lastname'   => strtoupper(trim($request->lastname)),
-            'email'      => $request->email,
-            'department' => $isAdmin ? 'HSE' : $request->department,
-            'role'       => $isAdmin ? 'admin' : 'user',
-            'password'   => Hash::make($request->password),
-        ]);
+      $user = User::create([
+    'firstname'  => trim($request->firstname),
+    'lastname'   => strtoupper(trim($request->lastname)),
+    'email'      => $request->email,
+    'department' => $request->department, // ✅ toujours depuis le formulaire
+    'role' => $isAdmin ? 'admin' : 'user',
+    'password'   => Hash::make($request->password),
+]);
+
 
         Auth::login($user);
 
@@ -173,12 +183,14 @@ class ERESAuthController extends Controller
     // DÉCONNEXION
     // ==================================================================
 
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+  public function logout(Request $request)
+{
+    Auth::logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
 
-        return view('auth.logout');
-    }
+    // Redirection vers la page de login
+    return redirect()->route('login');
+}
+
 }

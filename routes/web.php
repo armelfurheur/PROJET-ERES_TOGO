@@ -6,6 +6,9 @@ use App\Http\Controllers\AnomalieController;
 use App\Http\Controllers\FormulaireController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\AdminAccessController;
+use App\Http\Controllers\UserController;
+
 
 // ================= Page de Connexion =================
 Route::get('/', function () {
@@ -59,10 +62,11 @@ Route::middleware('auth')->group(function () {
     });
 
     // ================= Page du formulaire d’anomalie (role:user) =================
-    Route::middleware('role:user')->group(function () {
-        Route::get('/formulaire', [AnomalieController::class, 'index'])->name('anomalie.index');
-        Route::post('/formulaire', [AnomalieController::class, 'store'])->name('anomalie.store');
-    });
+   Route::middleware('auth')->group(function () {
+    Route::get('/formulaire', [AnomalieController::class, 'index'])->name('anomalie.index');
+    Route::post('/formulaire', [AnomalieController::class, 'store'])->name('anomalie.store');
+});
+
 
     // ================= Tableau de bord et gestion admin (role:admin) =================
   Route::middleware('role:admin')->group(function () {
@@ -89,4 +93,47 @@ Route::middleware('auth')->group(function () {
     Route::post('/proposals', [ProposalController::class, 'store'])->name('proposals.store');
     Route::get('/proposals/list/{anomalie}', [ProposalController::class, 'getProposalsByAnomalie'])->name('proposals.list');
    
+});
+
+
+// web.php
+
+// Vérifie mot de passe maître via Ajax
+Route::post('/admin/check-master', [AdminAccessController::class, 'checkMasterPassword'])->name('admin.checkMasterPassword');
+
+// Dashboard Admin
+Route::get('/admin/dashboard', [AdminAccessController::class, 'dashboard'])->name('admin.dashboard');
+
+
+
+
+// Ajouter un utilisateur
+Route::post('/admin/users/store', [UserController::class, 'store'])->name('admin.users.store');
+
+// Modifier un utilisateur
+Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
+
+// Supprimer un utilisateur
+Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+Route::get('/admin/users/{user}', [UserController::class, 'show'])->name('admin.users.show');
+
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/login');
+})->name('logout');
+
+Route::middleware('auth')->group(function () {
+
+    // Page de choix pour admin
+    Route::get('/admin/choix-connexion', function () {
+        abort_unless(auth()->user()->role === 'admin', 403);
+        return view('admin.choice-connexion'); // nouvelle vue
+    })->name('admin.choice-connexion');
+
+    // Routes classiques
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/formulaire', fn () => view('layouts.formulaire'))->name('formulaire.anomalie');
+
 });
