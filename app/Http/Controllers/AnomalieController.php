@@ -36,7 +36,7 @@ class AnomalieController extends Controller
             'description'  => 'required|string',
             'action'       => 'required|string',
             'datetime'     => 'required|date',
-            'preuves.*'    => 'nullable|image|max:2048',
+            'preuves.*'    => 'nullable|image|max:5120',
         ]);
 
         /* ===============================
