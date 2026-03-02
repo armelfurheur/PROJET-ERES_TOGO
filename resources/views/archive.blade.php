@@ -27,6 +27,7 @@
                         <th class="border px-4 py-3 text-left font-semibold">Date anomalie</th>
                         <th class="border px-4 py-3 text-left font-semibold">Rapporté par</th>
                         <th class="border px-4 py-3 text-left font-semibold">Département</th>
+                        <th class="border px-4 py-3 text-left font-semibold">Structure</th>
                         <th class="border px-4 py-3 text-left font-semibold">Gravité</th>
                         <th class="border px-4 py-3 text-left font-semibold">Date clôture</th>
                         <th class="border px-4 py-3 text-center font-semibold">Actions</th>
@@ -98,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <td class="border px-4 py-3 text-gray-700">${dateAnomalie}</td>
                         <td class="border px-4 py-3 text-gray-700">${anomaly.rapporte_par}</td>
                         <td class="border px-4 py-3 text-gray-700">${anomaly.departement}</td>
+                        <td class="border px-4 py-3 text-center">${anomaly.structure ?? '-'}</td>
                         <td class="border px-4 py-3">
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${gravityClass}">
                                 <span class="w-2 h-2 rounded-full mr-2 ${anomaly.gravity === 'Faible' ? 'bg-green-500' : anomaly.gravity === 'Moyenne' ? 'bg-yellow-500' : anomaly.gravity === 'Haute' ? 'bg-orange-500' : 'bg-red-500'}"></span>
@@ -388,12 +390,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function generateCSV(anomalies) {
-        const headers = ['ID', 'Date anomalie', 'Rapporté par', 'Département', 'Gravité', 'Date clôture', 'Propositions'];
+        const headers = ['ID', 'Date anomalie', 'Rapporté par', 'Département','Structure' ,  'Gravité', 'Date clôture', 'Propositions'];
         const rows = anomalies.map(a => [
             a.id,
             new Date(a.datetime).toLocaleDateString('fr-FR'),
             a.rapporte_par,
             a.departement,
+            a.structure,
             a.gravity,
             a.updated_at ? new Date(a.updated_at).toLocaleDateString('fr-FR') : '',
             a.propositions?.map(p => `${p.action} (${p.person})`).join('; ') || 'Aucune'
@@ -424,13 +427,14 @@ document.addEventListener('DOMContentLoaded', function () {
             new Date(a.datetime).toLocaleDateString('fr-FR'),
             a.rapporte_par,
             a.departement,
+            a.structure,
             a.gravity,
             a.updated_at ? new Date(a.updated_at).toLocaleDateString('fr-FR') : '-',
             a.propositions?.map(p => `${p.action} (${p.person})`).join('\n') || 'Aucune'
         ]);
 
         doc.autoTable({
-            head: [['ID', 'Date', 'Rapporté par', 'Département', 'Gravité', 'Clôturé le', 'Propositions']],
+            head: [['ID', 'Date', 'Rapporté par', 'Département', 'Structure' , 'Gravité', 'Clôturé le', 'Propositions']],
             body: tableData,
             startY: 30,
             styles: { fontSize: 8, cellPadding: 2 },

@@ -1,141 +1,46 @@
 // public/js/anomalie.js
 
 document.addEventListener('DOMContentLoaded', function () {
+
     const anomaliesTableBody = document.getElementById('anomaliesTableBody');
     const anomalyCountSpan = document.getElementById('anomalyCount');
     const paginationDiv = document.getElementById('pagination');
     let currentPage = 1;
+ let currentAnomalyData = null;
+    if (!anomaliesTableBody) return;
 
-    // === Récupérer les filtres ===
+    /* =======================
+        FILTRES
+    ======================= */
+
     function getFilters() {
         return {
             status: document.getElementById('filterStatus')?.value || '',
             priority: document.getElementById('filterPriority')?.value || '',
-            department: document.getElementById('searchDepartment')?.value.trim() || '',
+            department: document.getElementById('searchDepartment')?.value?.trim() || '',
             date: document.getElementById('searchDate')?.value || '',
+            structure: document.getElementById('filterStructure')?.value ||'',
         };
     }
 
-    // === Construire l'URL avec les filtres + page ===
     function buildUrl(page) {
+        if (!window.routes?.anomaliesList) return '';
+
         const filters = getFilters();
         const params = new URLSearchParams({ page });
+
         Object.keys(filters).forEach(key => {
             if (filters[key]) params.append(key, filters[key]);
         });
+
         return `${window.routes.anomaliesList}?${params.toString()}`;
     }
 
-    // === Charger les anomalies ===
-    function loadAnomalies(page = 1) {
-        currentPage = page;
-        fetch(buildUrl(page))
-            .then(res => {
-                if (!res.ok) throw new Error('Network error');
-                return res.json();
-            })
-            .then(data => {
-                anomaliesTableBody.innerHTML = '';
-                anomalyCountSpan.textContent = `(${data.total || 0})`;
-
-                data.anomalies.forEach(anomaly => {
-                    const row = document.createElement('tr');
-                    row.id = `anomaly-${anomaly.id}`;
-                    row.innerHTML = `
-                        <td class="border px-2 py-1">${anomaly.id}</td>
-                        <td class="border px-2 py-1">${new Date(anomaly.created_at).toLocaleString()}</td>
-                        <td class="border px-2 py-1">${anomaly.rapporte_par}</td>
-                        <td class="border px-2 py-1">${anomaly.departement}</td>
-                        <td class="border px-2 py-1">${anomaly.localisation}</td>
-                        <td class="border px-2 py-1">${anomaly.gravity}</td>
-                        <td class="border px-2 py-1 text-center">
-                            <select class="status-select border rounded w-28 text-xs px-2 py-1" data-id="${anomaly.id}" data-old="${anomaly.status}">
-                                <option value="Ouverte" ${anomaly.status === 'Ouverte' ? 'selected' : ''}>Ouverte</option>
-                                <option value="Clôturée" ${anomaly.status === 'Clôturée' ? 'selected' : ''}>Clôturée</option>
-                            </select>
-                        </td>
-                        <td class="border px-2 py-1 text-center space-x-1">
-                            <button class="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600" onclick="viewAnomaly(${anomaly.id})">Voir</button>
-                            <button class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600" onclick="toggleProposals(${anomaly.id})">Propositions</button>
-                            <button class="px-2 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600" onclick="showAddProposalForm(${anomaly.id})">Ajouter</button>
-                        </td>
-                    `;
-                    anomaliesTableBody.appendChild(row);
-
-                    const proposalRow = document.createElement('tr');
-                    proposalRow.id = `proposals-${anomaly.id}`;
-                    proposalRow.classList.add('hidden', 'bg-gray-50');
-                    proposalRow.innerHTML = `<td colspan="8" class="px-2 py-2"><div id="proposal-container-${anomaly.id}"></div></td>`;
-                    anomaliesTableBody.appendChild(proposalRow);
-                });
-
-                // === Pagination ===
-                paginationDiv.innerHTML = `
-                    <button ${data.current_page <= 1 ? 'disabled' : ''}
-                        class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                        onclick="loadAnomalies(${data.current_page - 1})">Précédent</button>
-                    <span class="font-medium">Page ${data.current_page} / ${data.last_page}</span>
-                    <button ${data.current_page >= data.last_page ? 'disabled' : ''}
-                        class="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                        onclick="loadAnomalies(${data.current_page + 1})">Suivant</button>
-                `;
-
-                // === Gestion du statut ===
-                document.querySelectorAll('.status-select').forEach(select => {
-                    select.addEventListener('change', function () {
-                        const id = this.dataset.id;
-                        const newStatus = this.value;
-                        const oldStatus = this.dataset.old;
-
-                        fetch(`/anomalies/${id}/update-status`, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            },
-                            body: JSON.stringify({ status: newStatus })
-                        })
-                            .then(res => res.json())
-                            .then(result => {
-                                if (result.success) {
-                                    toastr.success(result.message);
-                                    this.dataset.old = newStatus;
-                                } else {
-                                    toastr.error(result.message || "Échec");
-                                    this.value = oldStatus;
-                                }
-                            })
-                            .catch(() => {
-                                toastr.error("Erreur serveur");
-                                this.value = oldStatus;
-                            });
-                    });
-                });
-            })
-            .catch(err => {
-                console.error(err);
-                toastr.error("Impossible de charger les anomalies");
-            });
-    }
-
-    // === Réinitialiser page 1 sur changement de filtre ===
     function resetAndLoad() {
         currentPage = 1;
         loadAnomalies(1);
     }
 
-    // === Écouteurs sur filtres ===
-    ['filterStatus', 'filterPriority', 'searchDepartment', 'searchDate'].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (el.tagName === 'SELECT' || el.type === 'date') {
-            el.addEventListener('change', resetAndLoad);
-        } else {
-            el.addEventListener('input', debounce(resetAndLoad, 500));
-        }
-    });
-
-    // === Debounce ===
     function debounce(func, wait) {
         let timeout;
         return function () {
@@ -144,7 +49,201 @@ document.addEventListener('DOMContentLoaded', function () {
         };
     }
 
-   // === Voir Anomalie (amélioré) ===
+    ['filterStatus', 'filterPriority', 'searchDepartment', 'searchDate' , 'filterStructure'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        if (el.tagName === 'SELECT' || el.type === 'date') {
+            el.addEventListener('change', resetAndLoad);
+        } else {
+            el.addEventListener('input', debounce(resetAndLoad, 500));
+        }
+    });
+
+    /* =======================
+        CHARGEMENT ANOMALIES
+    ======================= */
+
+    async function loadAnomalies(page = 1) {
+
+        currentPage = page;
+
+        try {
+            const url = buildUrl(page);
+            if (!url) return;
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Erreur réseau');
+
+            const data = await res.json();
+
+            anomaliesTableBody.innerHTML = '';
+
+            if (anomalyCountSpan) {
+                anomalyCountSpan.textContent = `(${data.total || 0})`;
+            }
+
+            (data.anomalies || []).forEach(anomaly => {
+
+                let structureLabel = '-';
+                if (anomaly.structure === 'ERES') {
+                    structureLabel = '<span class="text-green-600 font-semibold">ERES</span>';
+                } else if (anomaly.structure === 'RAST') {
+                    structureLabel = '<span class="text-blue-600 font-semibold">RAST</span>';
+                }
+
+                const row = document.createElement('tr');
+
+                row.innerHTML = `
+                    <td class="border px-2 py-1">${anomaly.id}</td>
+                    <td class="border px-2 py-1">${new Date(anomaly.created_at).toLocaleString()}</td>
+                    <td class="border px-2 py-1">${anomaly.rapporte_par ?? '-'}</td>
+                    <td class="border px-2 py-1">${anomaly.departement ?? '-'}</td>
+                    <td class="border px-2 py-1 text-center">${structureLabel}</td>
+                    <td class="border px-2 py-1">${anomaly.localisation ?? '-'}</td>
+                    <td class="border px-2 py-1">${anomaly.gravity ?? '-'}</td>
+                    <td class="border px-2 py-1 text-center">
+                        <select class="anomaly-status border rounded text-xs px-2 py-1"
+                            data-id="${anomaly.id}"
+                            data-old="${anomaly.status}">
+                            <option value="Ouverte" ${anomaly.status === 'Ouverte' ? 'selected' : ''}>Ouverte</option>
+                            <option value="Clôturée" ${anomaly.status === 'Clôturée' ? 'selected' : ''}>Clôturée</option>
+                        </select>
+                    </td>
+                    <td class="border px-2 py-1 text-center space-x-1">
+                        <button class="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
+                            onclick="viewAnomaly(${anomaly.id})">Voir</button>
+                        <button class="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
+                            onclick="toggleProposals(${anomaly.id})">Propositions</button>
+                        <button class="px-2 py-1 bg-yellow-500 text-white rounded text-xs hover:bg-yellow-600"
+                            onclick="showAddProposalForm(${anomaly.id})">Ajouter</button>
+                            <button class="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                            onclick="deleteAnomaly(${anomaly.id}, this)">Supprimer</button>
+
+
+                    </td>
+                `;
+
+                anomaliesTableBody.appendChild(row);
+
+                const proposalRow = document.createElement('tr');
+                proposalRow.id = `proposals-${anomaly.id}`;
+                proposalRow.classList.add('hidden');
+                proposalRow.innerHTML = `
+                    <td colspan="9">
+                        <div id="proposal-container-${anomaly.id}" class="p-3 bg-gray-50"></div>
+                    </td>
+                `;
+                anomaliesTableBody.appendChild(proposalRow);
+            });
+
+            renderPagination(data);
+            attachAnomalyStatusListeners();
+
+        } catch (e) {
+            console.error(e);
+            toastr?.error("Impossible de charger les anomalies");
+        }
+    }
+
+    /* =======================
+        PAGINATION
+    ======================= */
+
+    function renderPagination(data) {
+        if (!paginationDiv) return;
+
+        paginationDiv.innerHTML = `
+            <button ${data.current_page <= 1 ? 'disabled' : ''}
+                onclick="loadAnomalies(${data.current_page - 1})"
+                class="px-3 py-1 bg-gray-200 rounded">
+                Précédent
+            </button>
+
+            <span class="mx-3 font-medium">
+                Page ${data.current_page} / ${data.last_page}
+            </span>
+
+            <button ${data.current_page >= data.last_page ? 'disabled' : ''}
+                onclick="loadAnomalies(${data.current_page + 1})"
+                class="px-3 py-1 bg-gray-200 rounded">
+                Suivant
+            </button>
+        `;
+    }
+
+    /* =======================
+        STATUT ANOMALIE
+    ======================= */
+
+    function attachAnomalyStatusListeners() {
+        document.querySelectorAll('.anomaly-status').forEach(select => {
+
+            select.addEventListener('change', async function () {
+
+                const id = this.dataset.id;
+                const oldStatus = this.dataset.old;
+                const newStatus = this.value;
+
+                try {
+                    const response = await fetch(`/anomalies/${id}/update-status`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                        },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        toastr?.success(result.message);
+                        this.dataset.old = newStatus;
+                    } else {
+                        this.value = oldStatus;
+                        toastr?.error(result.message || "Erreur");
+                    }
+
+                } catch (err) {
+                    this.value = oldStatus;
+                    toastr?.error("Erreur serveur");
+                }
+            });
+
+        });
+    }
+
+    /* =======================
+        ACTIONS GLOBALES
+    ======================= */
+
+    window.viewAnomaly = function (id) {
+        window.location.href = `/anomalies/${id}`;
+    };
+
+    window.toggleProposals = function (id) {
+        const row = document.getElementById(`proposals-${id}`);
+        if (!row) return;
+        row.classList.toggle('hidden');
+    };
+
+    window.showAddProposalForm = function (id) {
+        const modal = document.getElementById('addProposalModal');
+        if (!modal) return;
+
+        document.getElementById('proposalAnomalieId').value = id;
+        modal.classList.remove('hidden');
+    };
+
+    /* =======================
+        INITIALISATION
+    ======================= */
+
+    window.loadAnomalies = loadAnomalies;
+    loadAnomalies();
+
+      // === Voir Anomalie (amélioré) ===
 window.viewAnomaly = function (id) {
     const modal = document.getElementById('viewAnomalyModal');
     const details = document.getElementById('anomalyDetails');
@@ -166,6 +265,7 @@ window.viewAnomaly = function (id) {
         .then(res => res.json())
         .then(data => {
             const a = data.anomalie;
+             currentAnomalyData = a;
 
             details.innerHTML = `
                 <div class="bg-white rounded-lg shadow-lg w-full max-w-lg p-6 animate-fadeIn">
@@ -452,4 +552,103 @@ function attachStatusListeners(container) {
     
     loadAnomalies();
     window.loadAnomalies = loadAnomalies;
+
+
+    // === ENVOI PAR EMAIL ===
+    
+    /**
+     * Formate la gravité pour l'affichage
+     */
+    function formatGravity(gravity) {
+        switch(gravity) {
+            case 'arret': return '🔴 Arrêt Immédiat';
+            case 'precaution': return '🟡 Précaution';
+            case 'continuer': return '🟢 Continuer';
+            default: return gravity || 'Non spécifié';
+        }
+    }
+
+    /**
+     * Ouvre le client email avec les détails de l'anomalie
+     */
+    window.openEmailClient = function() {
+        if (!currentAnomalyData) {
+            toastr.error('Aucune anomalie sélectionnée');
+            return;
+        }
+
+        const a = currentAnomalyData;
+        
+        // Préparer le sujet de l'email
+        const subject = `Anomalie #${a.id} - ${a.departement || 'Non spécifié'}`;
+        
+        // Préparer le corps de l'email
+        const body = `
+DÉTAILS DE L'ANOMALIE #${a.id}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📅 Date/Heure: ${new Date(a.created_at).toLocaleString('fr-FR')}
+👤 Rapporté par: ${a.rapporte_par || 'Non spécifié'}
+🏢 Département: ${a.departement || 'Non spécifié'}
+🏗️ Structure: ${a.structure || 'Non spécifié'}
+📍 Localisation: ${a.localisation || 'Non spécifié'}
+⚠️ Gravité: ${formatGravity(a.gravity)}
+📊 Statut: ${a.status || 'Non spécifié'}
+
+📝 DESCRIPTION:
+${a.description || 'Aucune description'}
+
+🔧 ACTION:
+${a.action || 'Aucune action'}
+
+Cordialement,
+        `.trim();
+
+        // Encoder l'URL pour mailto
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        // Ouvrir le client email
+        window.location.href = mailtoLink;
+        
+        toastr.success('Client email ouvert !');
+    };
+
+    // Fin du DOMContentLoaded
+    loadAnomalies();
+    window.loadAnomalies = loadAnomalies;
+
+    window.deleteAnomaly = async function (id, btn) {
+        if (!confirm(`Voulez-vous vraiment supprimer l'anomalie #${id} ?`)) return;
+
+        try {
+            const response = await fetch(`/anomalies/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                toastr.success(data.message || 'Anomalie supprimée avec succès.');
+                // Supprime la ligne du tableau
+                const row = btn.closest('tr');
+                const proposalRow = document.getElementById(`proposals-${id}`);
+                if (row) row.remove();
+                if (proposalRow) proposalRow.remove();
+            } else {
+                toastr.error(data.message || 'Impossible de supprimer l’anomalie.');
+            }
+        } catch (err) {
+            console.error(err);
+            toastr.error('Erreur serveur lors de la suppression.');
+        }
+    };
+
 });
+
+
+

@@ -12,6 +12,7 @@ class Anomalie extends Model
     protected $fillable = [
         'rapporte_par',
         'departement',
+        'structure',  
         'localisation',
         'gravity',
         'status',
@@ -24,6 +25,7 @@ class Anomalie extends Model
 
     protected $casts = [
         'datetime' => 'datetime',
+          'preuve' => 'array', 
     ];
 
     public function user()

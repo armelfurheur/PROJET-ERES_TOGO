@@ -84,7 +84,7 @@ class ERESAuthController extends Controller
     'firstname'  => trim($request->firstname),
     'lastname'   => strtoupper(trim($request->lastname)),
     'email'      => $request->email,
-    'department' => $request->department, // ✅ toujours depuis le formulaire
+    'department' => $request->department, 
     'role' => $isAdmin ? 'admin' : 'user',
     'password'   => Hash::make($request->password),
 ]);

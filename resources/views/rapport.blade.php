@@ -31,6 +31,16 @@
             </div>
 
             <div>
+                <label for="structureSelect" class="text-sm font-medium text-gray-600">Structure</label>
+                <select id="structureSelect" class="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-400">
+                    <option value="GLOBAL">Global (ERES + RAST)</option>
+                    <option value="ERES">ERES</option>
+                    <option value="RAST">RAST</option>
+                </select>
+          </div>
+
+
+            <div>
                 <button id="generateReport" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition">
                     Générer le rapport
                 </button>
@@ -68,6 +78,7 @@
                                 <th class="border px-2 py-2 text-gray-700 text-sm">Localisation</th>
                                 <th class="border px-2 py-2 text-gray-700 text-sm">Gravité</th>
                                 <th class="border px-2 py-2 text-gray-700 text-sm">Département</th>
+                                <th class="border px-2 py-2 text-gray-700 text-sm">Structure</th>
                                 <th class="border px-2 py-2 text-gray-700 text-sm">Statut</th>
                             </tr>
                         </thead>
@@ -95,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const monthGroup = document.getElementById('monthGroup');
     const yearGroup = document.getElementById('yearGroup');
     const yearSelect = document.getElementById('reportYear');
+    const structureSelect = document.getElementById('structureSelect');
     const generateBtn = document.getElementById('generateReport');
     const reportResult = document.getElementById('reportResult');
     const reportStats = document.getElementById('reportStats');
@@ -131,14 +143,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toastr.info('Génération du rapport en cours...');
 
-        fetch('{{ route("generate.report") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ type, reportMonth: month, reportYear: year })
-        })
+       const structure = structureSelect.value;
+
+            fetch('{{ route("generate.report") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ 
+                    type, 
+                    reportMonth: month, 
+                    reportYear: year,
+                    structure: structure
+    })
+})
+
         .then(res => res.json())
         .then(data => {
             if (data.error) return toastr.error(data.error);
@@ -196,24 +216,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p class="text-xs uppercase">Ouvertes</p>
                 <p class="font-bold text-xl">${stats.ouvertes ?? 0}</p>
             </div>
-            <div class="bg-indigo-50 text-indigo-700 p-3 rounded-lg shadow flex items-center justify-center gap-2">
-                <span class="font-semibold">Utilisateur le plus actif :</span>
-                <span class="bg-indigo-200 text-indigo-900 px-2 py-1 rounded-full text-sm font-medium">
-                    ${escapeHtml(stats.utilisateur_top?.nom || 'Aucun')} (${stats.utilisateur_top?.nombre || 0})
-                </span>
-            </div>
+            <div class="bg-indigo-50 text-indigo-700 p-3 rounded-lg shadow">
+    <div class="font-semibold text-center mb-2">Utilisateurs les plus actifs</div>
+    <div class="flex flex-col gap-2">
+        ${generateTopUsersHTML(stats)}
+    </div>
+</div>
         `;
 
-        anomaliesTableBody.innerHTML = (data.data || []).map((a, i) => `
-            <tr class="hover:bg-gray-50">
-                <td class="border px-2 py-1 text-center">${i + 1}</td>
-                <td class="border px-2 py-1">${escapeHtml(a.description)}</td>
-                <td class="border px-2 py-1">${a.localisation || '-'}</td>
-                <td class="border px-2 py-1">${a.gravity || '-'}</td>
-                <td class="border px-2 py-1">${a.departement || '-'}</td>
-                <td class="border px-2 py-1">${a.status || '-'}</td>
-            </tr>
-        `).join('');
+       anomaliesTableBody.innerHTML = (data.data || []).map((a, i) => `
+    <tr class="hover:bg-gray-50">
+        <td class="border px-2 py-1 text-center">${i + 1}</td>
+        <td class="border px-2 py-1">${escapeHtml(a.description)}</td>
+        <td class="border px-2 py-1">${a.localisation || '-'}</td>
+        <td class="border px-2 py-1">${a.gravity || '-'}</td>
+        <td class="border px-2 py-1">${a.departement || '-'}</td>
+        <td class="border px-2 py-1 font-medium text-blue-700">${a.structure || '-'}</td>
+        <td class="border px-2 py-1">${a.status || '-'}</td>
+    </tr>
+`).join('');
+
 
         renderCharts(data, type);
     }
@@ -229,7 +251,53 @@ document.addEventListener('DOMContentLoaded', () => {
         div.textContent = text || '';
         return div.innerHTML;
     }
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
 
+// Nouvelle fonction à ajouter ici
+function generateTopUsersHTML(stats) {
+    let html = '';
+    
+    // Utilisateurs ERES
+    if (stats.utilisateurs_top_eres && stats.utilisateurs_top_eres.length > 0) {
+        html += '<div class="bg-white p-2 rounded border border-indigo-200">';
+        html += '<div class="text-xs font-semibold text-indigo-600 mb-1">ERES</div>';
+        html += '<div class="flex flex-wrap gap-1">';
+        stats.utilisateurs_top_eres.slice(0, 2).forEach((user, index) => {
+            html += `
+                <span class="bg-indigo-200 text-indigo-900 px-2 py-1 rounded-full text-xs font-medium">
+                    ${index + 1}. ${escapeHtml(user.nom || 'Aucun')} (${user.nombre || 0})
+                </span>
+            `;
+        });
+        html += '</div></div>';
+    }
+    
+    // Utilisateurs RAST
+    if (stats.utilisateurs_top_rast && stats.utilisateurs_top_rast.length > 0) {
+        html += '<div class="bg-white p-2 rounded border border-indigo-200">';
+        html += '<div class="text-xs font-semibold text-indigo-600 mb-1">RAST</div>';
+        html += '<div class="flex flex-wrap gap-1">';
+        stats.utilisateurs_top_rast.slice(0, 2).forEach((user, index) => {
+            html += `
+                <span class="bg-purple-200 text-purple-900 px-2 py-1 rounded-full text-xs font-medium">
+                    ${index + 1}. ${escapeHtml(user.nom || 'Aucun')} (${user.nombre || 0})
+                </span>
+            `;
+        });
+        html += '</div></div>';
+    }
+    
+    // Si aucun utilisateur trouvé
+    if (html === '') {
+        html = '<div class="text-center text-sm text-gray-500">Aucun utilisateur actif</div>';
+    }
+    
+    return html;
+}
     // --- Graphiques (affichés à l'écran) ---
     function renderCharts(data, type) {
         if (reportChart) reportChart.destroy();
@@ -432,6 +500,18 @@ document.addEventListener('DOMContentLoaded', () => {
             doc.text(`Période : ${safeFormatDate(periode.debut)} - ${safeFormatDate(periode.fin)}`, pageWidth / 2, y, { align: 'center' });
             y += 15;
 
+
+            const selectedStructure = document.getElementById('structureSelect').value;
+
+                    doc.text(
+                        `Structure : ${selectedStructure}`,
+                        pageWidth / 2,
+                        y + 6,
+                        { align: 'center' }
+            );
+
+                y += 18;
+
             // Statistiques
             const stats = currentReportData.statistiques || {};
             doc.setFontSize(10);
@@ -441,17 +521,19 @@ document.addEventListener('DOMContentLoaded', () => {
             y += 15;
 
             // Tableau
-            const tableData = (currentReportData.data || []).map((a, i) => [
+                    const tableData = (currentReportData.data || []).map((a, i) => [
                 i + 1,
                 (a.description || '').substring(0, 60) + (a.description?.length > 60 ? '...' : ''),
                 a.localisation || '',
                 a.gravity || '',
                 a.departement || '',
+                a.structure || '',
                 a.status || ''
             ]);
 
+
             doc.autoTable({
-                head: [['N°', 'Description', 'Localisation', 'Gravité', 'Département', 'Statut']],
+                head: [['N°', 'Description', 'Localisation', 'Gravité', 'Département',  'Structure' , 'Statut']],
                 body: tableData,
                 startY: y,
                 theme: 'grid',
@@ -463,7 +545,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     2: { cellWidth: 30 },
                     3: { cellWidth: 20 },
                     4: { cellWidth: 30 },
-                    5: { cellWidth: 20 }
+                    5: { cellWidth: 20 },
+                    6: { cellWidth: 18 }
                 }
             });
 
@@ -489,26 +572,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1000);
     }
 
-    function exportToCSV() {
-        if (!currentReportData?.data?.length) {
-            toastr.error('Aucune donnée à exporter.');
-            return;
-        }
-
-        let csv = '\uFEFFNuméro,Description,Localisation,Gravité,Département,Statut\n';
-        currentReportData.data.forEach((a, i) => {
-            csv += `${i+1},"${(a.description || '').replace(/"/g, '""')}","${a.localisation || ''}","${a.gravity || ''}","${a.departement || ''}","${a.status || ''}"\n`;
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `rapport_remontee_anomalies_${new Date().toISOString().slice(0,10)}.csv`;
-        link.click();
-        URL.revokeObjectURL(url);
-        toastr.success('CSV exporté avec succès !');
+   function exportToCSV() {
+    if (!currentReportData?.data?.length) {
+        toastr.error('Aucune donnée à exporter.');
+        return;
     }
+
+    let csv = '\uFEFFNuméro;Description;Localisation;Gravité;Département;Structure;Statut\n';
+
+
+    currentReportData.data.forEach((a, i) => {
+        csv += `${i+1};"${(a.description || '').replace(/"/g, '""')}";"${a.localisation || ''}";"${a.gravity || ''}";"${a.departement || ''}";"${a.structure || ''}";"${a.status || ''}"\n`;
+
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `rapport_remontee_anomalies_${new Date().toISOString().slice(0,10)}.csv`;
+    link.click();
+
+    URL.revokeObjectURL(url);
+    toastr.success('CSV exporté avec succès !');
+}
+
 });
 </script>
 

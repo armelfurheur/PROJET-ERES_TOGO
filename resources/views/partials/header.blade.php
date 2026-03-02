@@ -184,4 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Sidebar toggle active */
 .sidebar-collapsed #sidebarToggle{background-color:rgba(0,123,255,0.1);}
+
+
+
 </style>

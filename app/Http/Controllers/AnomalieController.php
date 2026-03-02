@@ -7,12 +7,14 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use App\Models\Anomalie;
 use Carbon\Carbon;
+use App\Mail\AnomalyDetailsMail;
 
 class AnomalieController extends Controller
 {
-    /**
-     * Affiche le formulaire d'enregistrement d'une anomalie.
-     */
+    /* ======================================================
+        VUES
+    ====================================================== */
+
     public function index()
     {
         return view('layouts.formulaire');
@@ -23,6 +25,7 @@ class AnomalieController extends Controller
         return view('anomalie');
     }
 
+ 
     /**
      * Enregistrement d'une anomalie
      */
@@ -31,12 +34,14 @@ class AnomalieController extends Controller
         $validated = $request->validate([
             'rapporte_par' => 'required|string|max:255',
             'departement'  => 'required|string|max:255',
+            'structure'    => 'required|string|in:ERES,RAST',
             'localisation' => 'required|string|max:255',
             'gravity'      => 'required|string',
             'description'  => 'required|string',
             'action'       => 'required|string',
             'datetime'     => 'required|date',
-            'preuves.*'    => 'nullable|image|max:2048',
+            'preuves'      => 'nullable|array',
+            'preuves.*'    => 'nullable|image|max:5120',
         ]);
 
         /* ===============================
@@ -70,21 +75,39 @@ class AnomalieController extends Controller
         ]);
     }
 
-    /**
-     * Dashboard
-     */
+
+
+    /* ======================================================
+        DASHBOARD
+    ====================================================== */
+
     public function dashboard()
     {
-        $anomalies = Anomalie::orderBy('created_at', 'desc')->get();
-        return view('statistics', compact('anomalies'));
+        return view('statistics', [
+            'eres' => [
+                'total'     => Anomalie::where('structure', 'ERES')->count(),
+                'ouvertes'  => Anomalie::where('structure', 'ERES')->where('status', 'Ouverte')->count(),
+                'cloturees' => Anomalie::where('structure', 'ERES')->where('status', 'Clôturée')->count(),
+            ],
+            'rast' => [
+                'total'     => Anomalie::where('structure', 'RAST')->count(),
+                'ouvertes'  => Anomalie::where('structure', 'RAST')->where('status', 'Ouverte')->count(),
+                'cloturees' => Anomalie::where('structure', 'RAST')->where('status', 'Clôturée')->count(),
+            ]
+        ]);
     }
 
-    /**
-     * Liste des anomalies avec filtres
-     */
+    /* ======================================================
+        LISTE DES ANOMALIES (FILTRES + PAGINATION)
+    ====================================================== */
+
     public function getAnomalies(Request $request)
     {
         $query = Anomalie::query();
+
+        if ($request->filled('structure')) {
+            $query->where('structure', $request->structure);
+        }
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -102,36 +125,8 @@ class AnomalieController extends Controller
             $query->whereDate('created_at', $request->date);
         }
 
-        $anomalies = $query->orderBy('created_at', 'desc')->paginate(20);
-
-        return response()->json([
-            'anomalies'     => $anomalies->items(),
-            'current_page' => $anomalies->currentPage(),
-            'last_page'    => $anomalies->lastPage(),
-            'total'        => $anomalies->total(),
-        ]);
-    }
-
-    /**
-     * Anomalies du jour
-     */
-    public function getTodayAnomalies()
-    {
-        $anomalies = Anomalie::whereDate('created_at', Carbon::today())
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json(['anomalies' => $anomalies]);
-    }
-
-    /**
-     * Anomalies clôturées avec propositions
-     */
-    public function getClosedAnomaliesWithProposals()
-    {
-        $anomalies = Anomalie::with('propositions')
-            ->where('status', 'Clôturée')
-            ->orderBy('updated_at', 'desc')
+        $anomalies = $query
+            ->orderByDesc('created_at')
             ->paginate(20);
 
         return response()->json([
@@ -139,13 +134,45 @@ class AnomalieController extends Controller
             'current_page' => $anomalies->currentPage(),
             'last_page'    => $anomalies->lastPage(),
             'total'        => $anomalies->total(),
-            'per_page'     => $anomalies->perPage(),
         ]);
     }
 
-    /**
-     * Détails d'une anomalie
-     */
+    /* ======================================================
+        ANOMALIES DU JOUR
+    ====================================================== */
+
+    public function getTodayAnomalies()
+    {
+        return response()->json([
+            'anomalies' => Anomalie::whereDate('created_at', Carbon::today())
+                ->orderByDesc('created_at')
+                ->get()
+        ]);
+    }
+
+    /* ======================================================
+        ANOMALIES CLÔTURÉES AVEC PROPOSITIONS
+    ====================================================== */
+
+    public function getClosedAnomaliesWithProposals()
+    {
+        $anomalies = Anomalie::with('propositions')
+            ->where('status', 'Clôturée')
+            ->orderByDesc('updated_at')
+            ->paginate(20);
+
+        return response()->json([
+            'anomalies'     => $anomalies->items(),
+            'current_page' => $anomalies->currentPage(),
+            'last_page'    => $anomalies->lastPage(),
+            'total'        => $anomalies->total(),
+        ]);
+    }
+
+    /* ======================================================
+        DÉTAIL D’UNE ANOMALIE
+    ====================================================== */
+
     public function getAnomalie($id)
     {
         return response()->json([
@@ -153,20 +180,24 @@ class AnomalieController extends Controller
         ]);
     }
 
-    /**
-     * Mise à jour du statut
-     */
+
+
+    
+    /* ======================================================
+        MISE À JOUR DU STATUT
+    ====================================================== */
+
     public function updateStatus(Request $request, $id)
     {
         $anomalie = Anomalie::with('propositions')->findOrFail($id);
-        $nouveauStatut = $request->status;
+        $status = $request->status;
 
-        if ($nouveauStatut === 'Clôturée') {
-            $restantes = $anomalie->propositions()
+        if ($status === 'Clôturée') {
+            $nonCloturees = $anomalie->propositions()
                 ->where('status', '!=', 'Clôturée')
                 ->count();
 
-            if ($restantes > 0) {
+            if ($nonCloturees > 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Certaines propositions ne sont pas clôturées.'
@@ -174,134 +205,140 @@ class AnomalieController extends Controller
             }
         }
 
-        $anomalie->update(['status' => $nouveauStatut]);
+        $anomalie->update(['status' => $status]);
 
         return response()->json([
             'success' => true,
-            'message' => "Statut mis à jour : {$nouveauStatut}",
+            'message' => "Statut mis à jour : {$status}",
             'anomalie' => $anomalie
         ]);
     }
 
+
     /**
-     * Génération de rapport
-     */
+ * Supprimer une anomalie
+ */
+public function destroy($id)
+{
+    $anomalie = Anomalie::findOrFail($id);
+
+    try {
+        $anomalie->delete();
+        return response()->json([
+            'success' => true,
+            'message' => 'Anomalie supprimée avec succès.'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Impossible de supprimer l’anomalie.'
+        ], 500);
+    }
+}
+
+    /* ======================================================
+        GÉNÉRATION DE RAPPORT
+    ====================================================== */
+
    public function generateReport(Request $request)
 {
-    $type = $request->input('type');
-    $month = $request->input('reportMonth');
-    $year = $request->input('reportYear');
+    $type      = $request->input('type');
+    $month     = $request->input('reportMonth');
+    $year      = $request->input('reportYear');
+    $structure = $request->input('structure');
 
-    // Déterminer la période en fonction du type
+    if (!in_array($structure, ['ERES', 'RAST', 'GLOBAL'])) {
+        return response()->json(['error' => 'Structure invalide'], 400);
+    }
+
     if ($type === 'month' && $month) {
         $start = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
-        $end = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
+        $end   = Carbon::createFromFormat('Y-m', $month)->endOfMonth();
     } elseif ($type === 'year' && $year) {
-        $start = Carbon::createFromDate($year, 1, 1)->startOfYear();
-        $end = Carbon::createFromDate($year, 12, 31)->endOfYear();
+        $start = Carbon::create($year, 1, 1)->startOfYear();
+        $end   = Carbon::create($year, 12, 31)->endOfYear();
     } else {
-        return response()->json(['error' => 'Type ou période invalide.'], 400);
+        return response()->json(['error' => 'Période invalide'], 400);
     }
 
-    // Récupérer les anomalies dans la période
-    $anomalies = Anomalie::with('propositions')
-        ->whereBetween('datetime', [$start, $end])
-        ->get();
+    $query = Anomalie::with('propositions')
+        ->whereBetween('datetime', [$start, $end]);
 
-    // Si aucune anomalie n'est trouvée
-    if ($anomalies->isEmpty()) {
-        return response()->json([
-            'message' => 'Aucune anomalie trouvée.',
-            'data' => [],
-            'statistiques' => [
-                'total' => 0,
-                'cloturees' => 0,
-                'ouvertes' => 0,
-                'utilisateur_top' => ['nom' => 'Aucun', 'nombre' => 0],
-                'par_gravite' => [],
-                'par_departement' => [],
-                'mensuel' => [],
-                'mensuel_cloturees' => [],
-                'mensuel_ouvertes' => []
-            ],
-            'periode' => [
-                'debut' => $start->toDateString(),
-                'fin' => $end->toDateString()
-            ]
-        ]);
+    if ($structure !== 'GLOBAL') {
+        $query->where('structure', $structure);
     }
+    $anomalies = $query->get();
 
-    // Statistiques de base
-    $totalAnomalies = $anomalies->count();
+    $total = $anomalies->count();
     $closed = $anomalies->where('status', 'Clôturée')->count();
-    $open = $totalAnomalies - $closed;
+    $mensuel = [];
+    $mensuelCloturees = [];
 
-    // Utilisateur le plus actif
-    $topUser = $anomalies->groupBy('rapporte_par')->map->count()->sortDesc()->take(1);
-    $topUserName = $topUser->keys()->first() ?? 'Aucun';
-    $topUserCount = $topUser->first() ?? 0;
+    for ($i = 1; $i <= 12; $i++) {
+        $mensuel[$i] = $anomalies
+            ->filter(fn($a) => Carbon::parse($a->datetime)->month == $i)
+            ->count();
 
-    // Répartition par gravité et par département
-    $parGravite = $anomalies->groupBy('gravity')->map->count();
-    $parDepartement = $anomalies->groupBy('departement')->map->count();
-
-    // Initialisation des tableaux mensuels (12 mois)
-    $mensuel = array_fill(0, 12, 0);
-    $mensuelCloturees = array_fill(0, 12, 0);
-    $mensuelOuvertes = array_fill(0, 12, 0);
-
-    if ($type === 'year') {
-        // Calcul des statistiques mensuelles pour l'année
-        foreach ($anomalies as $anomalie) {
-            $monthIndex = (int)$anomalie->datetime->format('m') - 1; // 0-11 pour les index du tableau
-            $mensuel[$monthIndex]++;
-            
-            if ($anomalie->status === 'Clôturée') {
-                $mensuelCloturees[$monthIndex]++;
-            } else {
-                $mensuelOuvertes[$monthIndex]++;
-            }
-        }
-    } else {
-        // Pour le mode mois, on met les totaux dans des tableaux à un élément
-        $mensuel = [$totalAnomalies];
-        $mensuelCloturees = [$closed];
-        $mensuelOuvertes = [$open];
+        $mensuelCloturees[$i] = $anomalies
+            ->filter(fn($a) =>
+                Carbon::parse($a->datetime)->month == $i &&
+                $a->status == 'Clôturée'
+            )
+            ->count();
     }
 
-    // Formatage des données des anomalies pour la réponse
-    $anomaliesData = $anomalies->map(function($a) {
-        return [
-            'id' => $a->id,
-            'description' => $a->description,
-            'localisation' => $a->localisation,
-            'gravity' => $a->gravity,
-            'departement' => $a->departement,
-            'status' => $a->status,
-            'propositions' => $a->propositions->pluck('description')->toArray()
-        ];
-    });
+    // Calculer les utilisateurs les plus actifs ERES
+    // Grouper directement par 'rapporte_par' (le nom)
+    $topUsersEres = $anomalies
+        ->where('structure', 'ERES')
+        ->filter(fn($a) => !empty($a->rapporte_par)) // Filtrer les anomalies sans nom
+        ->groupBy('rapporte_par')
+        ->map(function ($group) {
+            return [
+                'nom' => $group->first()->rapporte_par, // Utiliser directement rapporte_par
+                'nombre' => $group->count()
+            ];
+        })
+        ->sortByDesc('nombre')
+        ->take(2)
+        ->values()
+        ->toArray();
+
+    // Calculer les utilisateurs les plus actifs RAST
+    $topUsersRast = $anomalies
+        ->where('structure', 'RAST')
+        ->filter(fn($a) => !empty($a->rapporte_par)) // Filtrer les anomalies sans nom
+        ->groupBy('rapporte_par')
+        ->map(function ($group) {
+            return [
+                'nom' => $group->first()->rapporte_par, // Utiliser directement rapporte_par
+                'nombre' => $group->count()
+            ];
+        })
+        ->sortByDesc('nombre')
+        ->take(2)
+        ->values()
+        ->toArray();
 
     return response()->json([
         'periode' => [
-            'debut' => $start->format('Y-m-d'),
-            'fin' => $end->format('Y-m-d'),
+            'debut' => $start->toDateString(),
+            'fin'   => $end->toDateString(),
         ],
         'statistiques' => [
-            'total' => $totalAnomalies,
+            'total'     => $total,
             'cloturees' => $closed,
-            'ouvertes' => $open,
-            'utilisateur_top' => [
-                'nom' => $topUserName,
-                'nombre' => $topUserCount
-            ],
-            'par_gravite' => $parGravite->toArray(),
-            'par_departement' => $parDepartement->toArray(),
-            'mensuel' => $mensuel, // Total anomalies par mois
-            'mensuel_cloturees' => $mensuelCloturees, // Anomalies clôturées par mois
-            'mensuel_ouvertes' => $mensuelOuvertes // Anomalies ouvertes par mois
+            'ouvertes'  => $total - $closed,
+            'par_gravite'     => $anomalies->groupBy('gravity')->map->count(),
+            'par_departement' => $anomalies->groupBy('departement')->map->count(),
+            'mensuel' => array_values($mensuel),
+            'mensuel_cloturees' => array_values($mensuelCloturees),
+            
+            // Utilisateurs les plus actifs
+            'utilisateurs_top_eres' => $topUsersEres,
+            'utilisateurs_top_rast' => $topUsersRast,
         ],
-        'data' => $anomaliesData
+        'data' => $anomalies
     ]);
 }
 }

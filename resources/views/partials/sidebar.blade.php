@@ -22,7 +22,7 @@
 
             <li class="nav-item">
                 <a href="{{ route('statistics.view') }}"
-                   class="nav-link active"
+                   class="nav-link"
                    data-view="dashboard">
                     <span>Accueil</span>
                 </a>
@@ -141,37 +141,100 @@
     50% { opacity: 0.9; }
     100% { opacity: 0.6; }
 }
+
+/* =================== SIDEBAR LINK STYLES =================== */
+.sidebar-nav .nav-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: #ece6e6;
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s;
+}
+
+/* Trait bas discret pour le lien actif */
+.sidebar-nav .nav-link.active::after {
+    content: "";
+    position: absolute;
+    bottom: 2px;        /* légèrement au-dessus du bas */
+    left: 5%;          /* centré */
+    width: 30%;         /* largeur réduite */
+    height: 2px;        /* trait fin */
+    background-color: #ff6a00;
+    border-radius: 1px;
+}
+
+/* Submenu */
+.sub-menu {
+    display: none;
+    list-style: none;
+    padding-left: 1rem;
+    margin: 0;
+}
+
+.sub-menu.open {
+    display: block;
+}
+
+/* Icône chevron tourné si open */
+.nav-section-title.open i {
+    transform: rotate(180deg);
+    transition: transform 0.3s;
+}
 </style>
 
 <!-- ================= JS MENU ================= -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
+    // ====== GESTION SOUS-MENU HSE ======
     const sectionTitle = document.querySelector('.nav-section-title');
     const submenu = sectionTitle ? sectionTitle.nextElementSibling : null;
-    const STORAGE_KEY = 'sidebar.hse.open';
+    const SUBMENU_KEY = 'sidebar.hse.open';
 
-    if (!sectionTitle || !submenu) return;
+    if (sectionTitle && submenu) {
 
-    const isOpen = () => submenu.classList.contains('open');
+        const isOpen = () => submenu.classList.contains('open');
 
-    const setOpen = (open) => {
-        submenu.classList.toggle('open', open);
-        sectionTitle.classList.toggle('open', open);
-        localStorage.setItem(STORAGE_KEY, open ? '1' : '0');
-    };
+        const setOpen = (open) => {
+            submenu.classList.toggle('open', open);
+            sectionTitle.classList.toggle('open', open);
+            localStorage.setItem(SUBMENU_KEY, open ? '1' : '0');
+        };
 
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === '1') setOpen(true);
+        const saved = localStorage.getItem(SUBMENU_KEY);
+        if (saved === '1') setOpen(true);
 
-    sectionTitle.addEventListener('click', function (e) {
-        e.preventDefault();
-        setOpen(!isOpen());
+        sectionTitle.addEventListener('click', function (e) {
+            e.preventDefault();
+            setOpen(!isOpen());
+        });
+    }
+
+    // ====== GESTION TRAIT BAS ACTIF ======
+    const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', function () {
+
+            // Retirer active de tous les liens
+            navLinks.forEach(l => l.classList.remove('active'));
+
+            // Ajouter active au lien cliqué
+            this.classList.add('active');
+
+            // Sauvegarder dans localStorage
+            localStorage.setItem('sidebar.activeLink', this.dataset.view);
+
+        });
     });
 
-    submenu.addEventListener('click', function () {
-        localStorage.setItem(STORAGE_KEY, '1');
-    });
+    // Restaurer le lien actif après reload
+    const savedView = localStorage.getItem('sidebar.activeLink');
+    if (savedView) {
+        const savedLink = document.querySelector(`.sidebar-nav .nav-link[data-view="${savedView}"]`);
+        if (savedLink) savedLink.classList.add('active');
+    }
 
 });
 </script>

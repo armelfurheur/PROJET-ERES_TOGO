@@ -16,9 +16,7 @@ class FormulaireController extends Controller
     // Traite la soumission du formulaire (POST)
     public function store(Request $request)
     {
-        // Ici, ajoute la logique d'enregistrement si besoin
-        // ...
-
+    
         // On stocke les anciennes valeurs pour le bouton "Modifier"
         return redirect()->route('formulaire')
             ->with('success', 'Rapport soumis avec succès !')

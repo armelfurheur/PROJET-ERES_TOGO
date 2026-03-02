@@ -27,7 +27,14 @@
             </select>
             <input id="searchDepartment" class="border rounded px-3 py-1 max-w-xs" placeholder="Rechercher par département...">
             <input id="searchDate" type="date" class="border rounded px-3 py-1 max-w-xs">
+
+            <select id="filterStructure" class="border rounded px-3 py-1 max-w-xs">
+                <option value="">Toutes les structures</option>
+                <option value="ERES">ERES</option>
+                <option value="RAST">RAST</option>
+            </select>
         </div>
+
 
         <!-- Table + Pagination -->
         <div>
@@ -36,18 +43,21 @@
             </h3>
             <div class="table-container overflow-x-auto">
                 <table class="w-full table-auto border-collapse border border-gray-200">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="border px-2 py-1">N°</th>
-                            <th class="border px-2 py-1">Date/Heure</th>
-                            <th class="border px-2 py-1">Rapporté par</th>
-                            <th class="border px-2 py-1">Département</th>
-                            <th class="border px-2 py-1">Localisation</th>
-                            <th class="border px-2 py-1 text-center">Gravité</th>
-                            <th class="border px-2 py-1 text-center">Status</th>
-                            <th class="border px-2 py-1 text-center">Actions</th>
-                        </tr>
-                    </thead>
+<thead class="bg-gray-100">
+<tr>
+    <th class="border px-2 py-1">N°</th>
+    <th class="border px-2 py-1">Date/Heure</th>
+    <th class="border px-2 py-1">Rapporté par</th>
+    <th class="border px-2 py-1">Département</th>
+        <th class="border px-2 py-1">Structure</th>
+    <th class="border px-2 py-1">Localisation</th>
+    <th class="border px-2 py-1 text-center">Gravité</th>
+    <th class="border px-2 py-1 text-center">Status</th>
+    <th class="border px-2 py-1 text-center">Actions</th>
+
+</tr>
+</thead>
+
                     <tbody id="anomaliesTableBody"></tbody>
                 </table>
             </div>
@@ -64,6 +74,20 @@
         <span class="absolute top-2 right-3 text-gray-500 cursor-pointer hover:text-gray-700 text-xl" onclick="closeViewAnomalyModal()">×</span>
         <h3 class="text-lg font-semibold mb-4">Détails de l'anomalie</h3>
         <div id="anomalyDetails"><p>Chargement...</p></div>
+        
+        <!-- Bouton Envoyer par Email -->
+        <div class="mt-6 flex justify-end gap-3">
+    <button 
+        id="sendEmailBtn" 
+        onclick="openEmailClient()" 
+        class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="4" width="20" height="16" rx="2"/>
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+        </svg>
+        Envoyer par Email
+    </button>
+</div>
     </div>
 </div>
 
@@ -91,6 +115,7 @@
             </div>
         </form>
     </div>
+    
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>

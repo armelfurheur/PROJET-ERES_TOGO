@@ -136,4 +136,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/formulaire', fn () => view('layouts.formulaire'))->name('formulaire.anomalie');
 
+
+    
+    // Suppression d'une anomalie
+Route::delete('/anomalies/{id}', [AnomalieController::class, 'destroy'])
+    ->name('anomalies.destroy');
+
+
 });

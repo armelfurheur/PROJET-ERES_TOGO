@@ -85,38 +85,4 @@
 
 </body>
 </html>
-            <div>
-                <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Nouveau Mot de Passe</label>
-                <input id="password" type="password" name="password" required autocomplete="new-password"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 @error('password') border-red-500 @enderror" 
-                       placeholder="Minimum 8 caractères">
-                @error('password')
-                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Champ CONFIRMATION MOT DE PASSE -->
-            <div>
-                <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">Confirmer le Mot de Passe</label>
-                <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500" 
-                       placeholder="Confirmer">
-            </div>
-
-            <!-- Bouton de Soumission -->
-            <div>
-                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
-                    Réinitialiser le Mot de Passe
-                </button>
-            </div>
-        </form>
-
-        <div class="mt-6 text-center">
-            <a href="{{ route('login') }}" class="text-sm font-medium text-blue-600 hover:text-blue-500">
-                Annuler et revenir à la connexion
-            </a>
-        </div>
-    </div>
-
-</body>
-</html>
+          

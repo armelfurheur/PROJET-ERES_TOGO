@@ -1,124 +1,141 @@
 @extends('layouts.app')
 @section('title', "Formulaire de remontée d'anomalie")
 
-@section('content') <meta name="csrf-token" content="{{ csrf_token() }}">
+@section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 <div class="min-h-screen bg-gray-50 py-10 flex flex-col items-center">
     <div class="max-w-xl w-full mx-auto bg-white p-8 rounded-3xl shadow-2xl border border-gray-200 mt-8 relative">
 
-
-    {{-- EN-TÊTE --}}
-    <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
-        <div class="flex items-center gap-3">
-            <img src="{{ asset('img/ERES.jpg') }}" alt="Logo" class="h-10 w-auto">
-            <div>
-                <h2 class="welcome-title" id="welcomeTitle">
-                    Bienvenue 
-                    @if(Auth::check())
-                        {{ Auth::user()->firstname . ' ' . Auth::user()->lastname }}
-                    @else
-                        Visiteur
-                    @endif
-                </h2>
-                <div class="text-xs font-semibold tracking-wider ">
-                     sur <span style="
-    background: linear-gradient(90deg, #07411cff, #22c55e);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900;
-    font-size: 1.2rem;
-    position: relative;
-    display: inline-block;
-    transition: transform 0.3s ease, filter 0.3s ease;
-">ERESriskAlert</span> 
+        {{-- EN-TÊTE --}}
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+            <div class="flex items-center gap-3">
+                <img src="{{ asset('img/ERES.jpg') }}" alt="Logo" class="h-10 w-auto">
+                <div>
+                    <h2 class="welcome-title" id="welcomeTitle">
+                        Bienvenue 
+                        @if(Auth::check())
+                            {{ Auth::user()->firstname . ' ' . Auth::user()->lastname }}
+                        @else
+                            Visiteur
+                        @endif
+                    </h2>
+                    <div class="text-xs font-semibold tracking-wider">
+                        sur <span style="
+                            background: linear-gradient(90deg, #07411cff, #22c55e);
+                            -webkit-background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                            font-weight: 900;
+                            font-size: 1.2rem;
+                        ">ERESriskAlert</span>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <h1 class="text-2xl font-extrabold text-gray-800 mb-8 text-center">
+            Rapport de remontée d'Anomalie et Incident
+        </h1>
+
+        {{-- FORMULAIRE --}}
+        <form method="POST" action="{{ route('anomalie.store') }}" enctype="multipart/form-data" id="anomalie-form" class="space-y-6">
+            @csrf
+
+            {{-- Rapporteur & Département --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Rapporté par</label>
+                    <div class="bg-gray-100 rounded-xl px-4 py-3 font-medium text-gray-800">
+                        {{ Auth::user()->firstname }} <span class="uppercase font-bold">{{ Auth::user()->lastname }}</span>
+                    </div>
+                    <input type="hidden" name="rapporte_par" value="{{ Auth::user()->firstname . ' ' . Auth::user()->lastname }}">
+                </div>
+
+                <div>
+                    <label for="departement">Département :</label>
+                    <input type="text" name="departement" id="departement"
+                        value="{{ old('departement', Auth::user()->department ?? '') }}"
+                        class="w-full border rounded-xl p-3 {{ Auth::user() ? 'bg-gray-100' : '' }}"
+                        {{ Auth::user() ? 'readonly' : '' }} required>
+                </div>
+            </div>
+
+            {{-- Structure concernée --}}
+            <div class="space-y-2">
+                <label class="block text-sm font-semibold text-gray-700">
+                    Structure concernée <span class="text-red-500">*</span>
+                </label>
+                <div class="grid grid-cols-2 gap-4">
+                    @foreach(['ERES', 'RAST'] as $structure)
+                        <label class="flex items-center gap-3 p-4 border rounded-xl cursor-pointer
+                                      hover:border-green-500 transition
+                                      {{ old('structure') === $structure ? 'border-green-600 bg-green-50' : 'border-gray-200 bg-gray-50' }}">
+                            <input type="radio" name="structure" value="{{ $structure }}" class="accent-green-600" {{ old('structure') === $structure ? 'checked' : '' }} required>
+                            <span class="font-semibold text-gray-800">{{ $structure }}</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Localisation --}}
+            <div>
+                <label for="localisation">Localisation :*</label>
+                <input type="text" name="localisation" id="localisation" value="{{ old('localisation') }}" class="w-full border rounded-xl p-3" required>
+            </div>
+
+            {{-- Gravité --}}
+            <div>
+                <span class="font-bold">Niveau de Gravité :*</span>
+                <div class="grid sm:grid-cols-3 gap-4 mt-2">
+                    @foreach(['arret'=>'🚨 Arrêt Immédiat','precaution'=>'⚠️ Précaution','continuer'=>'🟢 Continuer'] as $val=>$label)
+                        <label><input type="radio" name="gravity" value="{{ $val }}" {{ old('gravity', 'continuer') == $val ? 'checked' : '' }}> {{ $label }}</label>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Description --}}
+            <div>
+                <label for="description">Description :*</label>
+                <textarea name="description" id="description" rows="4" class="w-full border rounded-xl p-3" required>{{ old('description') }}</textarea>
+            </div>
+
+            {{-- Action immédiate --}}
+            <div>
+                <label for="action">Action immédiate :*</label>
+                <textarea name="action" id="action" rows="3" class="w-full border rounded-xl p-3" required>{{ old('action') }}</textarea>
+            </div>
+
+            {{-- Date & Heure --}}
+            <input type="hidden" name="datetime" value="{{ now() }}">
+
+            {{-- Preuves --}}
+            <div>
+                <label for="preuves">Images / fichiers:*</label>
+                <input type="file" 
+                    name="preuves[]" 
+                    id="preuves" 
+                    accept="image/*,application/pdf" 
+                    multiple
+                    onchange="previewFiles(event)" 
+                    class="block w-full text-sm">
+                <div id="file-preview-container" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+            </div>
+
+            {{-- Bouton --}}
+            <div class="text-center relative">
+                <button type="submit" id="submit-btn" class="bg-green-600 text-white px-10 py-4 rounded-full font-extrabold flex items-center justify-center gap-2">
+                    <span id="btn-text">ENVOYER</span>
+                    <svg id="btn-spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
     </div>
-
-    <h1 class="text-2xl font-extrabold text-gray-800 mb-8 text-center">
-        Rapport de remontée d'Anomalie et Incident
-    </h1>
-
-    {{-- FORMULAIRE --}}
-    <form method="POST" action="{{ route('anomalie.store') }}" enctype="multipart/form-data" id="anomalie-form" class="space-y-6">
-        @csrf
-
-        {{-- Rapporteur & Département --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Rapporté par</label>
-                <div class="bg-gray-100 rounded-xl px-4 py-3 font-medium text-gray-800">
-                    {{ Auth::user()->firstname }} <span class="uppercase font-bold">{{ Auth::user()->lastname }}</span>
-                </div>
-                <input type="hidden" name="rapporte_par" value="{{ Auth::user()->firstname . ' ' . Auth::user()->lastname }}">
-
-            </div>
-            <div>
-                <label for="departement">Département :</label>
-                <input type="text" name="departement" id="departement"
-                    value="{{ old('departement', Auth::user()->department ?? '') }}"
-                    class="w-full border rounded-xl p-3 {{ Auth::user() ? 'bg-gray-100' : '' }}"
-                    {{ Auth::user() ? 'readonly' : '' }} required>
-            </div>
-        </div>
-
-        {{-- Localisation --}}
-        <div>
-            <label for="localisation">Localisation :*</label>
-            <input type="text" name="localisation" id="localisation" value="{{ old('localisation') }}" class="w-full border rounded-xl p-3" required>
-        </div>
-
-        {{-- Gravité --}}
-        <div>
-            <span class="font-bold">Niveau de Gravité :*</span>
-            <div class="grid sm:grid-cols-3 gap-4 mt-2">
-                <label><input type="radio" name="gravity" value="arret" {{ old('gravity') == 'arret' ? 'checked' : '' }}> 🚨 Arrêt Immédiat</label>
-                <label><input type="radio" name="gravity" value="precaution" {{ old('gravity') == 'precaution' ? 'checked' : '' }}> ⚠️ Précaution</label>
-                <label><input type="radio" name="gravity" value="continuer" {{ old('gravity', 'continuer') == 'continuer' ? 'checked' : '' }}> 🟢 Continuer</label>
-            </div>
-        </div>
-
-        {{-- Description --}}
-        <div>
-            <label for="description">Description :*</label>
-            <textarea name="description" id="description" rows="4" class="w-full border rounded-xl p-3" required>{{ old('description') }}</textarea>
-        </div>
-
-        {{-- Action --}}
-        <div>
-            <label for="action">Action immédiate :*</label>
-            <textarea name="action" id="action" rows="3" class="w-full border rounded-xl p-3" required>{{ old('action') }}</textarea>
-        </div>
-
-        {{-- Date & Heure --}}
-        <input type="hidden" name="datetime" value="{{ now() }}">
-
-        {{-- Preuves --}}
-        <div>
-            <label for="preuves">Images / fichiers:*</label>
-            <input type="file" 
-                name="preuves[]" 
-                id="preuves" 
-                accept="image/*,application/pdf" 
-                multiple
-                onchange="previewFiles(event)" 
-                class="block w-full text-sm">
-            <div id="file-preview-container" class="hidden mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
-        </div>
-
-        {{-- Bouton --}}
-        <div class="text-center">
-            <button type="submit" class="bg-green-600 text-white px-10 py-4 rounded-full font-extrabold">
-                ENVOYER
-            </button>
-        </div>
-    </form>
 </div>
 
-
-</div>
-
+{{-- Toastr --}}
 <link href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
 
@@ -135,20 +152,25 @@ toastr.options = {
     progressBar: true,
     positionClass: 'toast-top-right',
     timeOut: '5000',
-    extendedTimeOut: '1000',
-    showEasing: 'swing',
-    hideEasing: 'linear',
-    showMethod: 'fadeIn',
-    hideMethod: 'fadeOut'
+    extendedTimeOut: '1000'
 };
 
 let allFiles = [];
 
-document.getElementById('anomalie-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
+const form = document.getElementById('anomalie-form');
+const submitBtn = document.getElementById('submit-btn');
+const btnText = document.getElementById('btn-text');
+const btnSpinner = document.getElementById('btn-spinner');
 
-    // AJOUT DU CSRF MANUELLEMENT
+form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    // Désactiver le bouton et afficher spinner
+    submitBtn.disabled = true;
+    btnText.textContent = 'Traitement en cours...';
+    btnSpinner.classList.remove('hidden');
+
+    const formData = new FormData(this);
     formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
     fetch('{{ route('anomalie.store') }}', {
@@ -160,18 +182,24 @@ document.getElementById('anomalie-form').addEventListener('submit', function(e) 
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            toastr.success(data.message || 'Anomalie enregistrée avec succès !', 'Succès');
-            this.reset();
+            toastr.success(data.message || 'Anomalie enregistrée avec succès !');
+            form.reset();
             allFiles = [];
             document.getElementById('file-preview-container').classList.add('hidden');
             document.getElementById('file-preview-container').innerHTML = '';
         } else {
-            toastr.error(data.message || 'Erreur lors de la soumission.', 'Erreur');
+            toastr.error(data.message || 'Erreur lors de la soumission.');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        toastr.error('Une erreur réseau ou CSRF est survenue.', 'Erreur');
+        toastr.error('Problème de connexion ou erreur serveur.');
+    })
+    .finally(() => {
+        // Réactiver le bouton et cacher spinner
+        submitBtn.disabled = false;
+        btnText.textContent = 'ENVOYER';
+        btnSpinner.classList.add('hidden');
     });
 });
 
@@ -235,5 +263,4 @@ function updateInputFiles() {
     input.files = dt.files;
 }
 </script>
-
 @endsection
