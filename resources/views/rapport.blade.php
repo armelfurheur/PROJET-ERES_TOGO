@@ -74,6 +74,7 @@
                         <thead class="bg-gray-100">
                             <tr>
                                 <th class="border px-2 py-2 text-gray-700 text-sm">N°</th>
+                                 <th class="border px-2 py-2 text-gray-700 text-sm">Rapporté par</th>
                                 <th class="border px-2 py-2 text-gray-700 text-sm">Description</th>
                                 <th class="border px-2 py-2 text-gray-700 text-sm">Localisation</th>
                                 <th class="border px-2 py-2 text-gray-700 text-sm">Gravité</th>
@@ -227,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
        anomaliesTableBody.innerHTML = (data.data || []).map((a, i) => `
     <tr class="hover:bg-gray-50">
         <td class="border px-2 py-1 text-center">${i + 1}</td>
+        <td class="border px-2 py-1">${escapeHtml(a.rapporte_par || '-')}</td>
         <td class="border px-2 py-1">${escapeHtml(a.description)}</td>
         <td class="border px-2 py-1">${a.localisation || '-'}</td>
         <td class="border px-2 py-1">${a.gravity || '-'}</td>
@@ -478,111 +480,161 @@ function generateTopUsersHTML(stats) {
         }
     }
     
-    function exportToPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'mm', 'a4');
-        const pageWidth = doc.internal.pageSize.getWidth();
-        let y = 20;
-        let pdfGenerated = false;
+ function exportToPDF(){
 
-        const generatePdfContent = () => {
-            if (pdfGenerated) return;
-            pdfGenerated = true;
+const { jsPDF } = window.jspdf;
+const doc = new jsPDF('p','mm','a4');
 
-            // Titre
-            doc.setFontSize(16);
-            doc.text("Rapport de remontée d'anomalies", pageWidth / 2, y, { align: 'center' });
-            y += 12;
+const pageWidth = doc.internal.pageSize.getWidth();
+let y = 22;
 
-            // Période
-            const periode = currentReportData.periode || {};
-            doc.setFontSize(10);
-            doc.text(`Période : ${safeFormatDate(periode.debut)} - ${safeFormatDate(periode.fin)}`, pageWidth / 2, y, { align: 'center' });
-            y += 15;
+const periode = currentReportData.periode || {};
+const stats = currentReportData.statistiques || {};
+const selectedStructure = document.getElementById('structureSelect').value;
 
 
-            const selectedStructure = document.getElementById('structureSelect').value;
+/* ================= HEADER ================= */
 
-                    doc.text(
-                        `Structure : ${selectedStructure}`,
-                        pageWidth / 2,
-                        y + 6,
-                        { align: 'center' }
-            );
+const logo = new Image();
+logo.src = '{{ asset('img/ERES.jpg') }}';
 
-                y += 18;
+logo.onload = () => {
 
-            // Statistiques
-            const stats = currentReportData.statistiques || {};
-            doc.setFontSize(10);
-            doc.text(`Total anomalies : ${stats.total ?? 0}`, 20, y);
-            y += 6;
-            doc.text(`Ouvertes : ${stats.ouvertes ?? 0} | Clôturées : ${stats.cloturees ?? 0}`, 20, y);
-            y += 15;
+doc.addImage(logo,'JPG',10,8,25,12);
 
-            // Tableau
-                    const tableData = (currentReportData.data || []).map((a, i) => [
-                i + 1,
-                (a.description || '').substring(0, 60) + (a.description?.length > 60 ? '...' : ''),
-                a.localisation || '',
-                a.gravity || '',
-                a.departement || '',
-                a.structure || '',
-                a.status || ''
-            ]);
+doc.setFontSize(14);
+doc.setFont(undefined,'bold');
+doc.text("Rapport de remontée d'anomalies",pageWidth/2,12,{align:'center'});
+
+doc.setFontSize(9);
+doc.setFont(undefined,'normal');
+
+doc.text(
+`Période : ${safeFormatDate(periode.debut)} - ${safeFormatDate(periode.fin)}`,
+pageWidth/2,
+17,
+{align:'center'}
+);
+
+doc.text(`Structure : ${selectedStructure}`,pageWidth/2,21,{align:'center'});
+
+y = 28;
 
 
-            doc.autoTable({
-                head: [['N°', 'Description', 'Localisation', 'Gravité', 'Département',  'Structure' , 'Statut']],
-                body: tableData,
-                startY: y,
-                theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 2 },
-                headStyles: { fillColor: [55, 65, 81], textColor: 255 },
-                columnStyles: {
-                    0: { cellWidth: 10 },
-                    1: { cellWidth: 60 },
-                    2: { cellWidth: 30 },
-                    3: { cellWidth: 20 },
-                    4: { cellWidth: 30 },
-                    5: { cellWidth: 20 },
-                    6: { cellWidth: 18 }
-                }
-            });
+/* ================= STATISTIQUES ================= */
 
-            const fileName = `rapport_remontee_anomalies_${new Date().toISOString().slice(0,10)}.pdf`;
-            doc.save(fileName);
-            toastr.success('PDF exporté avec succès !');
-        };
+doc.setFontSize(9);
 
-        const logo = new Image();
-        logo.crossOrigin = 'Anonymous';
-        logo.src = '{{ asset('img/ERES.jpg') }}';
+doc.text(`Total : ${stats.total ?? 0}`,15,y);
+doc.text(`Ouvertes : ${stats.ouvertes ?? 0}`,60,y);
+doc.text(`Clôturées : ${stats.cloturees ?? 0}`,110,y);
 
-        logo.onload = () => {
-            doc.addImage(logo, 'JPG', 20, 10, 30, 15);
-            generatePdfContent();
-        };
+y += 6;
 
-        // Fallback si logo ne charge pas
-        setTimeout(() => {
-            if (!pdfGenerated) {
-                generatePdfContent();
-            }
-        }, 1000);
-    }
 
+/* ================= TABLE DATA ================= */
+
+const tableData = (currentReportData.data || []).slice(0,18).map((a,i)=>[
+
+i+1,
+(a.rapporte_par || '-').substring(0,15),
+(a.description || '-').substring(0,35),
+(a.localisation || '-').substring(0,15),
+a.gravity || '-',
+(a.departement || '-').substring(0,15),
+a.structure || '-',
+a.status || '-'
+
+]);
+
+
+/* ================= TABLEAU ================= */
+
+doc.autoTable({
+
+startY:y,
+
+head:[[
+'N°',
+'Rapporté par',
+'Description',
+'Localisation',
+'Gravité',
+'Département',
+'Structure',
+'Statut'
+]],
+
+body:tableData,
+
+theme:'grid',
+
+styles:{
+fontSize:7,
+cellPadding:1.5,
+valign:'middle'
+},
+
+headStyles:{
+fillColor:[52,73,94],
+textColor:255,
+halign:'center',
+fontStyle:'bold'
+},
+
+columnStyles:{
+0:{cellWidth:8,halign:'center'},
+1:{cellWidth:25},
+2:{cellWidth:45},
+3:{cellWidth:25},
+4:{cellWidth:15,halign:'center'},
+5:{cellWidth:25},
+6:{cellWidth:15,halign:'center'},
+7:{cellWidth:15,halign:'center'}
+},
+
+margin:{left:8,right:8},
+
+pageBreak:'avoid'
+
+});
+
+
+/* ================= FOOTER ================= */
+
+doc.setFontSize(7);
+
+doc.text(
+`Rapport généré le ${new Date().toLocaleDateString()}`,
+10,
+290
+);
+
+doc.text(
+"ERES Risk Alert",
+pageWidth-40,
+290
+);
+
+
+doc.save(`rapport_anomalies_${new Date().toISOString().slice(0,10)}.pdf`);
+
+toastr.success("PDF exporté avec succès");
+
+};
+
+}
    function exportToCSV() {
     if (!currentReportData?.data?.length) {
         toastr.error('Aucune donnée à exporter.');
         return;
     }
 
-    let csv = '\uFEFFNuméro;Description;Localisation;Gravité;Département;Structure;Statut\n';
+    let csv = '\uFEFFNuméro;Rapporté par;Description;Localisation;Gravité;Département;Structure;Statut\n';
 
 
     currentReportData.data.forEach((a, i) => {
-        csv += `${i+1};"${(a.description || '').replace(/"/g, '""')}";"${a.localisation || ''}";"${a.gravity || ''}";"${a.departement || ''}";"${a.structure || ''}";"${a.status || ''}"\n`;
+        csv += `${i+1};"${a.rapporte_par || ''}";"${(a.description || '').replace(/"/g, '""')}";"${a.localisation || ''}";"${a.gravity || ''}";"${a.departement || ''}";"${a.structure || ''}";"${a.status || ''}"\n`;
 
     });
 

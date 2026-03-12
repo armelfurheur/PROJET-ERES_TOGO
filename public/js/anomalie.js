@@ -554,65 +554,136 @@ function attachStatusListeners(container) {
     window.loadAnomalies = loadAnomalies;
 
 
-    // === ENVOI PAR EMAIL ===
-    
-    /**
-     * Formate la gravité pour l'affichage
-     */
-    function formatGravity(gravity) {
-        switch(gravity) {
-            case 'arret': return '🔴 Arrêt Immédiat';
-            case 'precaution': return '🟡 Précaution';
-            case 'continuer': return '🟢 Continuer';
-            default: return gravity || 'Non spécifié';
-        }
+ /**
+ * Génère un PDF professionnel avec les détails de l'anomalie
+ */
+window.openEmailClient = function () {
+
+    if (!currentAnomalyData) {
+        toastr.error('Aucune anomalie sélectionnée');
+        return;
     }
 
-    /**
-     * Ouvre le client email avec les détails de l'anomalie
-     */
-    window.openEmailClient = function() {
-        if (!currentAnomalyData) {
-            toastr.error('Aucune anomalie sélectionnée');
-            return;
-        }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-        const a = currentAnomalyData;
-        
-        // Préparer le sujet de l'email
-        const subject = `Anomalie #${a.id} - ${a.departement || 'Non spécifié'}`;
-        
-        // Préparer le corps de l'email
-        const body = `
-DÉTAILS DE L'ANOMALIE #${a.id}
+    const a = currentAnomalyData;
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    let y = 20;
 
-📅 Date/Heure: ${new Date(a.created_at).toLocaleString('fr-FR')}
-👤 Rapporté par: ${a.rapporte_par || 'Non spécifié'}
-🏢 Département: ${a.departement || 'Non spécifié'}
-🏗️ Structure: ${a.structure || 'Non spécifié'}
-📍 Localisation: ${a.localisation || 'Non spécifié'}
-⚠️ Gravité: ${formatGravity(a.gravity)}
-📊 Statut: ${a.status || 'Non spécifié'}
+    // ====== LOGO ======
+    const logo = new Image();
+    logo.src = "/img/ERES.jpg"; // chemin de ton logo
 
-📝 DESCRIPTION:
-${a.description || 'Aucune description'}
+    logo.onload = function () {
 
-🔧 ACTION:
-${a.action || 'Aucune action'}
+        doc.addImage(logo, "JPG", 10, 8, 15, 20); 
+        // x , y , largeur , hauteur
 
-Cordialement,
-        `.trim();
+        // ====== TITRE ======
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(18);
+        doc.text("FICHE D'ANOMALIE", 105, y, { align: "center" });
 
-        // Encoder l'URL pour mailto
-        const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        
-        // Ouvrir le client email
-        window.location.href = mailtoLink;
-        
-        toastr.success('Client email ouvert !');
+        y += 10;
+
+        doc.setFontSize(12);
+        doc.text(`Anomalie #${a.id}`, 105, y, { align: "center" });
+
+        y += 10;
+
+        // Ligne séparation
+        doc.setDrawColor(0);
+        doc.line(10, y, 200, y);
+
+        y += 10;
+
+        // ====== INFORMATIONS ======
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("Informations générales", 10, y);
+
+        y += 8;
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+
+        doc.text(`Date / Heure : ${new Date(a.created_at).toLocaleString('fr-FR')}`, 10, y);
+        y += 7;
+
+        doc.text(`Rapporté par : ${a.rapporte_par || 'Non specifie'}`, 10, y);
+        y += 7;
+
+        doc.text(`Departement : ${a.departement || 'Non specifie'}`, 10, y);
+        y += 7;
+
+        doc.text(`Structure : ${a.structure || 'Non specifie'}`, 10, y);
+        y += 7;
+
+        doc.text(`Localisation : ${a.localisation || 'Non specifie'}`, 10, y);
+        y += 7;
+
+        doc.text(`Gravite : ${a.gravity || 'Non specifie'}`, 10, y);
+        y += 7;
+
+        doc.text(`Statut : ${a.status || 'Non specifie'}`, 10, y);
+
+        y += 12;
+
+        // ====== DESCRIPTION ======
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("Description de l'anomalie", 10, y);
+
+        y += 6;
+
+        doc.setDrawColor(180);
+        doc.rect(10, y, 190, 25);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(11);
+
+        const description = doc.splitTextToSize(a.description || "Aucune description", 180);
+        doc.text(description, 12, y + 6);
+
+        y += 35;
+
+        // ====== ACTION ======
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(13);
+        doc.text("Action recommandée", 10, y);
+
+        y += 6;
+
+        doc.rect(10, y, 190, 25);
+
+        doc.setFont("helvetica", "normal");
+
+        const action = doc.splitTextToSize(a.action || "Aucune action", 180);
+        doc.text(action, 12, y + 6);
+
+        y += 35;
+
+        // ====== FOOTER ======
+        doc.setFontSize(10);
+        doc.setTextColor(120);
+
+        doc.text(
+            `Document généré le ${new Date().toLocaleDateString('fr-FR')}`,
+            105,
+            280,
+            { align: "center" }
+        );
+
+        // ====== TELECHARGEMENT ======
+        doc.save(`rapport_anomalie_${a.id}.pdf`);
+
+        toastr.success('PDF généré avec succès');
     };
+};
+
+
+
 
     // Fin du DOMContentLoaded
     loadAnomalies();
