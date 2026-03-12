@@ -71,18 +71,26 @@
 <!-- Modal Voir Anomalie -->
 <div id="viewAnomalyModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
-        <span class="absolute top-2 right-3 text-gray-500 cursor-pointer hover:text-gray-700 text-xl" onclick="closeViewAnomalyModal()">×</span>
+        <span class="abso
+        lute top-2 right-3 text-gray-500 cursor-pointer hover:text-gray-700 text-xl" onclick="closeViewAnomalyModal()">×</span>
         <h3 class="text-lg font-semibold mb-4">Détails de l'anomalie</h3>
         <div id="anomalyDetails"><p>Chargement...</p></div>
         
-        <!-- Bouton Envoyer par Email -->
-        <div class="mt-6 flex justify-end gap-3">
+  <!-- Bouton Générer PDF -->
+<div class="mt-6 flex justify-end gap-3">
     <button 
-        id="sendEmailBtn" 
-        onclick="openEmailClient()" 
+        id="generatePdfBtn" 
+        onclick="generateAnomalyPDF()"
         class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-       
-        Generer pdf
+        
+        <!-- Icône PDF -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 2h14l4 4v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/>
+            <path d="M14 2v4h4"/>
+            <path d="M16 13h-4v-4h4v4z"/>
+        </svg>
+
+        Générer PDF
     </button>
 </div>
     </div>

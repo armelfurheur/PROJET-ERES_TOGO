@@ -554,11 +554,8 @@ function attachStatusListeners(container) {
     window.loadAnomalies = loadAnomalies;
 
 
- /**
- * Génère un PDF professionnel avec les détails de l'anomalie
- */
-window.openEmailClient = function () {
-
+ // Fonction pour générer le PDF
+window.generateAnomalyPDF = function () {
     if (!currentAnomalyData) {
         toastr.error('Aucune anomalie sélectionnée');
         return;
@@ -566,122 +563,86 @@ window.openEmailClient = function () {
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-
     const a = currentAnomalyData;
 
     let y = 20;
 
-    // ====== LOGO ======
+    // ===== LOGO =====
     const logo = new Image();
-    logo.src = "/img/ERES.jpg"; // chemin de ton logo
-
+    logo.src = "/img/ERES.jpg"; // chemin du logo
     logo.onload = function () {
 
         doc.addImage(logo, "JPG", 10, 8, 15, 20); 
-        // x , y , largeur , hauteur
 
-        // ====== TITRE ======
+        // ===== TITRE =====
         doc.setFont("helvetica", "bold");
         doc.setFontSize(18);
         doc.text("FICHE D'ANOMALIE", 105, y, { align: "center" });
 
         y += 10;
-
         doc.setFontSize(12);
         doc.text(`Anomalie #${a.id}`, 105, y, { align: "center" });
 
         y += 10;
-
-        // Ligne séparation
         doc.setDrawColor(0);
         doc.line(10, y, 200, y);
 
         y += 10;
-
-        // ====== INFORMATIONS ======
+        // ===== INFORMATIONS =====
         doc.setFont("helvetica", "bold");
         doc.setFontSize(13);
         doc.text("Informations générales", 10, y);
 
         y += 8;
-
         doc.setFont("helvetica", "normal");
         doc.setFontSize(11);
 
-        doc.text(`Date / Heure : ${new Date(a.created_at).toLocaleString('fr-FR')}`, 10, y);
-        y += 7;
+        doc.text(`Date / Heure : ${new Date(a.created_at).toLocaleString('fr-FR')}`, 10, y); y += 7;
+        doc.text(`Rapporté par : ${a.rapporte_par || 'Non spécifié'}`, 10, y); y += 7;
+        doc.text(`Département : ${a.departement || 'Non spécifié'}`, 10, y); y += 7;
+        doc.text(`Structure : ${a.structure || 'Non spécifié'}`, 10, y); y += 7;
+        doc.text(`Localisation : ${a.localisation || 'Non spécifié'}`, 10, y); y += 7;
+        doc.text(`Gravité : ${a.gravity || 'Non spécifié'}`, 10, y); y += 7;
+        doc.text(`Statut : ${a.status || 'Non spécifié'}`, 10, y); y += 12;
 
-        doc.text(`Rapporté par : ${a.rapporte_par || 'Non specifie'}`, 10, y);
-        y += 7;
-
-        doc.text(`Departement : ${a.departement || 'Non specifie'}`, 10, y);
-        y += 7;
-
-        doc.text(`Structure : ${a.structure || 'Non specifie'}`, 10, y);
-        y += 7;
-
-        doc.text(`Localisation : ${a.localisation || 'Non specifie'}`, 10, y);
-        y += 7;
-
-        doc.text(`Gravite : ${a.gravity || 'Non specifie'}`, 10, y);
-        y += 7;
-
-        doc.text(`Statut : ${a.status || 'Non specifie'}`, 10, y);
-
-        y += 12;
-
-        // ====== DESCRIPTION ======
+        // ===== DESCRIPTION =====
         doc.setFont("helvetica", "bold");
         doc.setFontSize(13);
         doc.text("Description de l'anomalie", 10, y);
 
         y += 6;
-
         doc.setDrawColor(180);
         doc.rect(10, y, 190, 25);
 
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
-
         const description = doc.splitTextToSize(a.description || "Aucune description", 180);
         doc.text(description, 12, y + 6);
 
         y += 35;
 
-        // ====== ACTION ======
+        // ===== ACTION =====
         doc.setFont("helvetica", "bold");
         doc.setFontSize(13);
         doc.text("Action recommandée", 10, y);
 
         y += 6;
-
         doc.rect(10, y, 190, 25);
-
-        doc.setFont("helvetica", "normal");
 
         const action = doc.splitTextToSize(a.action || "Aucune action", 180);
         doc.text(action, 12, y + 6);
 
         y += 35;
 
-        // ====== FOOTER ======
+        // ===== FOOTER =====
         doc.setFontSize(10);
         doc.setTextColor(120);
+        doc.text(`Document généré le ${new Date().toLocaleDateString('fr-FR')}`, 105, 280, { align: "center" });
 
-        doc.text(
-            `Document généré le ${new Date().toLocaleDateString('fr-FR')}`,
-            105,
-            280,
-            { align: "center" }
-        );
-
-        // ====== TELECHARGEMENT ======
+        // ===== TELECHARGEMENT =====
         doc.save(`rapport_anomalie_${a.id}.pdf`);
-
         toastr.success('PDF généré avec succès');
     };
 };
-
 
 
 
