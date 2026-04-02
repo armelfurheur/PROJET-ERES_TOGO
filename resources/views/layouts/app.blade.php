@@ -92,38 +92,66 @@
             @auth
                 <div class="flex items-center space-x-4">
 
-                    <!-- Avatar -->
-                    <div class="flex items-center text-white">
-                        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-700">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="h-6 w-6 text-white"
-                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M5.121 17.804A13.937 13.937 0 0112 15
-                                         c2.5 0 4.847.655 6.879 1.804M15 11
-                                         a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                        </span>
+                   <div class="relative">
+    
+    <!-- Avatar -->
+    <button onclick="toggleUserMenu()" 
+        class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-700 focus:outline-none">
 
-                        <span class="ml-2 text-sm">
-                            Bienvenue,
-                            <span class="font-semibold text-yellow-300">
-                                {{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
-                            </span>
-                        </span>
-                    </div>
+        <svg xmlns="http://www.w3.org/2000/svg"
+             class="h-6 w-6 text-white"
+             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M5.121 17.804A13.937 13.937 0 0112 15
+                     c2.5 0 4.847.655 6.879 1.804M15 11
+                     a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
 
+    </button>
+
+    <!-- Message utilisateur -->
+    <div id="userMenu"
+         class="hidden absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-lg p-3 text-gray-700">
+
+        <span class="text-sm">
+            Bienvenue,
+            <span class="font-semibold text-green-600">
+                {{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
+            </span>
+        </span>
+
+    </div>
+
+</div>
+
+<script>
+function toggleUserMenu() {
+    const menu = document.getElementById("userMenu");
+    menu.classList.toggle("hidden");
+}
+</script>
+                  
                     <!-- Logout -->
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                        @csrf
-                    </form>
+<form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+    @csrf
+</form>
 
-                    <a href="#"
-                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                       class="px-4 py-2 rounded-md font-semibold text-yellow-300 hover:bg-green-800 transition">
-                        Déconnexion
-                    </a>
-                </div>
+<a href="#"
+   onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+   class="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-yellow-300 hover:bg-green-800 transition">
+
+    <!-- Icône toujours visible -->
+    <svg xmlns="http://www.w3.org/2000/svg" 
+         class="h-5 w-5"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V4"/>
+    </svg>
+
+    <!-- Texte caché en mobile -->
+    <span class="hidden sm:inline">Déconnexion</span>
+
+</a>
             @else
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('register') }}" class="flex items-center text-yellow-300 hover:underline">
@@ -162,6 +190,5 @@ $(document).ready(function () {
     });
 });
 </script>
-
 </body>
 </html>

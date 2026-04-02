@@ -681,6 +681,3 @@ window.generateAnomalyPDF = function () {
     };
 
 });
-
-
-

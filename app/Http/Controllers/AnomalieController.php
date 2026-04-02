@@ -77,7 +77,7 @@ class AnomalieController extends Controller
 
 
 
-    /* ======================================================
+    /* ===================================================
         DASHBOARD
     ====================================================== */
 
@@ -124,7 +124,13 @@ class AnomalieController extends Controller
         if ($request->filled('date')) {
             $query->whereDate('created_at', $request->date);
         }
+       if ($request->filled('start_date') && $request->filled('end_date')) {
 
+        $start = Carbon::parse($request->start_date)->startOfDay();
+        $end = Carbon::parse($request->end_date)->endOfDay();
+
+        $query->whereBetween('created_at', [$start, $end]);
+    }
         $anomalies = $query
             ->orderByDesc('created_at')
             ->paginate(20);
