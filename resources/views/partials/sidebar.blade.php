@@ -14,6 +14,13 @@
 
             </div>
         </a>
+
+        <!-- Bouton plier/déplier -->
+        <button class="btn-icon" id="sidebarToggle" title="Plier le sidebar">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
     </div>
 
     <!-- ================= NAV ================= -->
@@ -24,9 +31,9 @@
                 <a href="{{ route('statistics.view') }}"
                    class="nav-link"
                    data-view="dashboard">
-                    <span>Accueil</span>
+                    <span>Tableau de bord</span>
                 </a>
-            </li>
+            </li> 
 
             <!-- ===== HSE ===== -->
             <li class="nav-item" style="margin-top: 1.5rem;">
@@ -44,7 +51,7 @@
                            class="nav-link"
                            data-view="anomalies"
                            id="load-anomalies">
-                            Anomalies soumises
+                            <span>Anomalies soumises</span>
                             <span class="notification-badge"
                                   id="anomaliesNotificationBadge"
                                   style="display:none;">0</span>
@@ -55,7 +62,7 @@
                         <a href="{{ route('rapport.view') }}"
                            class="nav-link"
                            data-view="reports">
-                            Rapports
+                            <span>Rapports</span>
                         </a>
                     </li>
 
@@ -63,7 +70,7 @@
                         <a href="{{ route('archive.view') }}"
                            class="nav-link"
                            data-view="archive">
-                            Archives
+                            <span>Archives</span>
                         </a>
                     </li>
                 </ul>
@@ -76,110 +83,47 @@
 
 <!-- ================= CSS FEU / SIDEBAR ================= -->
 <style>
-/* LOGO */
-.logo-img {
-    width: 48px;
-    height: auto;
-    margin-bottom: 6px;
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 }
 
-/* TEXTE FEU */
-.fire-text {
-    font-size: 1.4rem;
-    font-weight: 900;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    background: linear-gradient(
-        180deg,
-        #ffffff 0%,
-        #ffe066 20%,
-        #ffb703 40%,
-        #ff6a00 60%,
-        #d00000 80%
-    );
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    position: relative;
-    animation: fireGlow 2s infinite alternate;
+.btn-icon {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    padding: 6px;
+    border-radius: 6px;
+    transition: background 0.2s ease, transform 0.2s ease;
 }
 
-/* HALO FEU */
-.fire-text::after {
-    content: "ERESriskAlert";
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: -1;
-    color: #ff6a00;
-    filter: blur(12px);
-    opacity: 0.7;
-    animation: fireFlicker 1.5s infinite;
+.btn-icon:hover {
+    background: rgba(0, 0, 0, 0.06);
 }
 
-/* SOUS TITRE */
-.subtitle {
-    font-size: 0.75rem;
-    letter-spacing: 1px;
-    color: #9ef0c1;
-    margin-top: -2px;
+/* --- État plié du sidebar --- */
+.sidebar.collapsed {
+    width: 72px; /* ajuste selon ta largeur normale */
 }
 
-/* ANIMATIONS */
-@keyframes fireGlow {
-    0% {
-        filter: drop-shadow(0 0 6px #ffb703);
-        transform: scale(1);
-    }
-    100% {
-        filter: drop-shadow(0 0 16px #ff4500);
-        transform: scale(1.05);
-    }
-}
-
-@keyframes fireFlicker {
-    0% { opacity: 0.5; }
-    50% { opacity: 0.9; }
-    100% { opacity: 0.6; }
-}
-
-/* =================== SIDEBAR LINK STYLES =================== */
-.sidebar-nav .nav-link {
-    display: block;
-    padding: 0.5rem 1rem;
-    color: #ece6e6;
-    text-decoration: none;
-    position: relative;
-    transition: color 0.3s;
-}
-
-/* Trait bas discret pour le lien actif */
-.sidebar-nav .nav-link.active::after {
-    content: "";
-    position: absolute;
-    bottom: 2px;        /* légèrement au-dessus du bas */
-    left: 5%;          /* centré */
-    width: 30%;         /* largeur réduite */
-    height: 2px;        /* trait fin */
-    background-color: #ff6a00;
-    border-radius: 1px;
-}
-
-/* Submenu */
-.sub-menu {
+.sidebar.collapsed .logo-text h1,
+.sidebar.collapsed .logo-text p,
+.sidebar.collapsed .nav-section-title span:not(.notification-badge),
+.sidebar.collapsed .sub-menu a span:not(.notification-badge),
+.sidebar.collapsed .nav-link span:not(.notification-badge) {
     display: none;
-    list-style: none;
-    padding-left: 1rem;
-    margin: 0;
 }
 
-.sub-menu.open {
-    display: block;
+.sidebar.collapsed .sidebar-header {
+    justify-content: center;
 }
 
-/* Icône chevron tourné si open */
-.nav-section-title.open i {
+.sidebar.collapsed .btn-icon svg {
     transform: rotate(180deg);
-    transition: transform 0.3s;
 }
 </style>
 
@@ -234,6 +178,29 @@ document.addEventListener('DOMContentLoaded', function () {
     if (savedView) {
         const savedLink = document.querySelector(`.sidebar-nav .nav-link[data-view="${savedView}"]`);
         if (savedLink) savedLink.classList.add('active');
+    }
+
+    // ====== GESTION TOGGLE SIDEBAR (plier/déplier) ======
+    const sidebar = document.querySelector('.sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const SIDEBAR_KEY = 'sidebar.collapsed';
+
+    if (sidebar && sidebarToggle) {
+
+        const setCollapsed = (collapsed) => {
+            sidebar.classList.toggle('collapsed', collapsed);
+            sidebarToggle.title = collapsed ? 'Déplier le sidebar' : 'Plier le sidebar';
+            localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0');
+        };
+
+        // Restaurer l'état sauvegardé au chargement
+        const savedState = localStorage.getItem(SIDEBAR_KEY);
+        if (savedState === '1') setCollapsed(true);
+
+        sidebarToggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            setCollapsed(!sidebar.classList.contains('collapsed'));
+        });
     }
 
 });

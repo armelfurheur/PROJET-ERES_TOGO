@@ -180,17 +180,24 @@ form.addEventListener('submit', function(e) {
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            toastr.success(data.message || 'Anomalie enregistrée avec succès !');
-            form.reset();
-            allFiles = [];
-            document.getElementById('file-preview-container').classList.add('hidden');
-            document.getElementById('file-preview-container').innerHTML = '';
-        } else {
-            toastr.error(data.message || 'Erreur lors de la soumission.');
+   .then(data => {
+    if (data.success) {
+        toastr.success(data.message || 'Anomalie enregistrée avec succès !');
+        form.reset();
+        allFiles = [];
+        document.getElementById('file-preview-container').classList.add('hidden');
+        document.getElementById('file-preview-container').innerHTML = '';
+
+        // Coach mark affiché juste après le toast de succès (petit délai)
+        if (typeof window.showLogoutCoachMark === 'function') {
+            setTimeout(() => {
+                window.showLogoutCoachMark();
+            }, 3000); // délai après l'apparition du toastr
         }
-    })
+    } else {
+        toastr.error(data.message || 'Erreur lors de la soumission.');
+    }
+})
     .catch(error => {
         console.error('Error:', error);
         toastr.error('Problème de connexion ou erreur serveur.');

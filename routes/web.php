@@ -26,6 +26,8 @@ Route::get('/qrcode', function () {
     return view('qrcode');
 });
 
+Route::get('/admin/anomalies/{id}', [AdminAccessController::class, 'showAnomalie']);
+Route::delete('/admin/anomalies/{id}', [AdminAccessController::class, 'destroyAnomalie']);
 // ================= Routes Invitées (guest) =================
 Route::middleware('guest')->group(function () {
     // Connexion
@@ -74,6 +76,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/anomalies/list', [AnomalieController::class, 'getAnomalies'])->name('anomalies.list');
     Route::get('/anomalies/today', [AnomalieController::class, 'getTodayAnomalies'])->name('anomalies.today'); // ← nouvelle route
     Route::get('/anomalies/{id}', [AnomalieController::class, 'getAnomalie'])->name('anomalies.show');   
+    
    
     
 });

@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function () {
  let currentAnomalyData = null;
     if (!anomaliesTableBody) return;
 
+    
     /* =======================
         FILTRES
     ======================= */
@@ -62,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* =======================
         CHARGEMENT ANOMALIES
-    ======================= */
+    ======================= */  
 
     async function loadAnomalies(page = 1) {
 
@@ -98,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <td class="border px-2 py-1">${anomaly.id}</td>
                     <td class="border px-2 py-1">${new Date(anomaly.created_at).toLocaleString()}</td>
                     <td class="border px-2 py-1">${anomaly.rapporte_par ?? '-'}</td>
+                    <td class="border px-2 py-1">${anomaly.description ?? '-'}</td>
                     <td class="border px-2 py-1">${anomaly.departement ?? '-'}</td>
                     <td class="border px-2 py-1 text-center">${structureLabel}</td>
                     <td class="border px-2 py-1">${anomaly.localisation ?? '-'}</td>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\SendAnomalieMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Models\Anomalie;
 use Carbon\Carbon;
@@ -65,7 +66,7 @@ class AnomalieController extends Controller
 
         $anomalie = Anomalie::create($validated);
 
-        Mail::to('rosine@erestogo.com')->send(
+        Mail::to('zahir@gmail.com')->send(
             new SendAnomalieMail($anomalie)
         );
 
@@ -131,21 +132,38 @@ class AnomalieController extends Controller
 
         $query->whereBetween('created_at', [$start, $end]);
     }
+      
+        $countsQuery = clone $query;
+
         $anomalies = $query
             ->orderByDesc('created_at')
             ->paginate(20);
+
+       
+        $ouvertes  = (clone $countsQuery)->where('status', 'Ouverte')->count();
+        $cloturees = (clone $countsQuery)->where('status', 'Clôturée')->count();
+
+        $parGravite = (clone $countsQuery)
+            ->select('gravity', DB::raw('count(*) as total'))
+            ->groupBy('gravity')
+            ->pluck('total', 'gravity');
+
+        $parDepartement = (clone $countsQuery)
+            ->select('departement', DB::raw('count(*) as total'))
+            ->groupBy('departement')
+            ->pluck('total', 'departement');
 
         return response()->json([
             'anomalies'     => $anomalies->items(),
             'current_page' => $anomalies->currentPage(),
             'last_page'    => $anomalies->lastPage(),
             'total'        => $anomalies->total(),
+            'ouvertes'     => $ouvertes,
+            'cloturees'    => $cloturees,
+            'par_gravite'     => $parGravite,
+            'par_departement' => $parDepartement,
         ]);
     }
-
-    /* ======================================================
-        ANOMALIES DU JOUR
-    ====================================================== */
 
     public function getTodayAnomalies()
     {
@@ -176,7 +194,7 @@ class AnomalieController extends Controller
     }
 
     /* ======================================================
-        DÉTAIL D’UNE ANOMALIE
+        DÉTAIL D'UNE ANOMALIE
     ====================================================== */
 
     public function getAnomalie($id)
@@ -186,9 +204,6 @@ class AnomalieController extends Controller
         ]);
     }
 
-
-
-    
     /* ======================================================
         MISE À JOUR DU STATUT
     ====================================================== */
@@ -237,7 +252,7 @@ public function destroy($id)
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
-            'message' => 'Impossible de supprimer l’anomalie.'
+            'message' => 'Impossible de supprimer l\'anomalie.'
         ], 500);
     }
 }

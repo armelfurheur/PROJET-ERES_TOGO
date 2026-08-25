@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             
             // ON REMPLACE DÉFINITIVEMENT 'name' PAR :
-            $table->string('firstname', 100);   // Prénom(s)
-            $table->string('lastname', 100);    // Nom de famille (en majuscules)
+            $table->string('firstname', 100);   
+            $table->string('lastname', 100);    
 
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();

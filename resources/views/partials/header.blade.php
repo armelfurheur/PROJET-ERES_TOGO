@@ -1,9 +1,7 @@
 <nav class="top-nav">
     <div class="nav-title">
-        <button class="btn-icon" id="sidebarToggle" title="Plier le sidebar">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
+        <button class="" id="sidebarToggle" title="">
+          
         </button>
         <h2>Espace Responsable HSE</h2>
     </div>

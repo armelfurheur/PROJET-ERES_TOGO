@@ -20,38 +20,91 @@
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
 
-    <!-- ===== STYLE DANGER / FEU ===== -->
     <style>
-        .risk-fire {
-            display: inline-block;
-            font-size: 1.145rem; /* text-lg */
-            font-weight: 800;
-            letter-spacing: 0.05em;
-
-            background: linear-gradient(
-                90deg,
-                #ff0000,
-                #ff6a00,
-                #ffcc00,
-                #ff6a00,
-                #ff0000
-            );
-            background-size: 300% 100%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-
-            animation: fireMove 2.8s linear infinite;
-
-            text-shadow:
-                0 0 6px rgba(255, 90, 0, 0.7),
-                0 0 12px rgba(255, 120, 0, 0.6),
-                0 0 20px rgba(255, 0, 0, 0.5);
+        :root{
+            --ra-navy:#0a2540;
+            --ra-green-900:#14532d;
+            --ra-green-800:#166534;
         }
 
-        @keyframes fireMove {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
+        .ra-brand{
+            font-size:1.05rem;
+            font-weight:700;
+            letter-spacing:.01em;
+            color:#fef9c3;
         }
+
+        .ra-badge{
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:1.75rem;
+            height:1.75rem;
+            border-radius:9999px;
+            background:#fbbf24;
+            color:var(--ra-green-900);
+            flex-shrink:0;
+        }
+
+        .ra-user-menu{
+            min-width:14rem;
+        }
+
+        .ra-user-menu a,
+        .ra-user-menu button{
+            width:100%;
+        }
+
+
+        /* Coach mark déconnexion */
+.ra-coachmark{
+    position:absolute;
+    right:0;
+    top:3rem;
+    width:230px;
+    background:#78350f;
+    color:#fef3c7;
+    font-size:.8rem;
+    line-height:1.35;
+    padding:.85rem 1rem;
+    border-radius:.75rem;
+    box-shadow:0 10px 25px rgba(0,0,0,.3);
+    z-index:60;
+    animation:ra-coach-in .25s ease-out;
+}
+.ra-coachmark::before{
+    content:"";
+    position:absolute;
+    top:-6px;
+    right:14px;
+    width:12px;
+    height:12px;
+    background:inherit;
+    transform:rotate(45deg);
+}
+.ra-coach-close{
+    position:absolute;
+    top:4px;
+    right:8px;
+    cursor:pointer;
+    opacity:.7;
+    font-size:1rem;
+    line-height:1;
+}
+.ra-coach-close:hover{ opacity:1; }
+
+@keyframes ra-coach-in{
+    from{ opacity:0; transform:translateY(-6px); }
+    to{ opacity:1; transform:translateY(0); }
+}
+@keyframes ra-pulse-ring{
+    0%{ box-shadow:0 0 0 0 rgba(251,191,36,.7); }
+    70%{ box-shadow:0 0 0 10px rgba(251,191,36,0); }
+    100%{ box-shadow:0 0 0 0 rgba(251,191,36,0); }
+}
+.ra-pulse{
+    animation:ra-pulse-ring 1.4s ease-out infinite;
+}
     </style>
 </head>
 
@@ -59,28 +112,24 @@
 
 <!-- ================= NAVBAR ================= -->
 <nav class="bg-green-900 shadow fixed w-full top-0 left-0 z-50">
-    <div class="flex justify-between items-center px-6 py-4">
+    <div class="flex justify-between items-center px-6 py-3">
 
         <!-- ===== LOGO + APP NAME ===== -->
         <div class="flex items-center space-x-3">
-            <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="h-10 w-auto rounded-sm">
+            <img src="{{ asset('img/ERES.jpg') }}" alt="Logo ERES" class="h-9 w-auto rounded-sm">
 
-            <span class="text-green-300 text-xl font-light">|</span>
+            <span class="text-green-700 text-xl font-light">|</span>
 
-            <!-- ===== PLATEFORME ===== -->
-            <div class="leading-tight flex items-center space-x-2">
-
-                <!-- Icône Alerte -->
-                <span class="flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400 animate-pulse">
-                    <i class="fas fa-triangle-exclamation text-green-900 text-sm"></i>
+            <div class="flex items-center space-x-2">
+                <span class="ra-badge">
+                    <i class="fas fa-triangle-exclamation text-sm"></i>
                 </span>
 
-                <!-- Texte -->
-                <div>
-                    <span class="block text-xs uppercase tracking-widest text-green-200">
+                <div class="leading-tight">
+                    <span class="block text-xs uppercase tracking-widest text-green-300">
                         Plateforme
                     </span>
-                    <span class="block risk-fire">
+                    <span class="ra-brand">
                         ERESriskAlert
                     </span>
                 </div>
@@ -90,74 +139,59 @@
         <!-- ===== AUTH ===== -->
         <div>
             @auth
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
 
-                   <div class="relative">
-    
-    <!-- Avatar -->
-    <button onclick="toggleUserMenu()" 
-        class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-700 focus:outline-none">
+                    <div class="relative">
 
-        <svg xmlns="http://www.w3.org/2000/svg"
-             class="h-6 w-6 text-white"
-             fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M5.121 17.804A13.937 13.937 0 0112 15
-                     c2.5 0 4.847.655 6.879 1.804M15 11
-                     a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
+                        <!-- Avatar -->
+                        <button onclick="toggleUserMenu()" id="avatarBtn"
+                            class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-green-800 hover:bg-green-700 transition focus:outline-none">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                 class="h-5 w-5 text-white"
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M5.121 17.804A13.937 13.937 0 0112 15
+                                         c2.5 0 4.847.655 6.879 1.804M15 11
+                                         a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </button>
 
-    </button>
+                        <!-- Menu utilisateur -->
+                        <div id="userMenu"
+                             class="ra-user-menu hidden absolute right-0 mt-3 bg-white rounded-lg shadow-lg border border-gray-100 py-2 text-gray-700">
 
-    <!-- Message utilisateur -->
-    <div id="userMenu"
-         class="hidden absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-lg p-3 text-gray-700">
+                            <div class="px-4 py-2 text-sm border-b border-gray-100">
+                                <span class="block text-xs text-gray-400">Connecté en tant que</span>
+                                <span class="font-semibold text-gray-800">
+                                    {{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
+                                </span>
+                            </div>
 
-        <span class="text-sm">
-            Bienvenue,
-            <span class="font-semibold text-green-600">
-                {{ Auth::user()->firstname }} {{ Auth::user()->lastname }}
-            </span>
-        </span>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST">
+                                @csrf
+                                <button type="submit"
+                                    class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                         class="h-4 w-4"
+                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V4"/>
+                                    </svg>
+                                    Déconnexion
+                                </button>
+                            </form>
+                        </div>
 
-    </div>
-
-</div>
-
-<script>
-function toggleUserMenu() {
-    const menu = document.getElementById("userMenu");
-    menu.classList.toggle("hidden");
-}
-</script>
-                  
-                    <!-- Logout -->
-<form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-    @csrf
-</form>
-
-<a href="#"
-   onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-   class="flex items-center gap-2 px-3 py-2 rounded-md font-semibold text-yellow-300 hover:bg-green-800 transition">
-
-    <!-- Icône toujours visible -->
-    <svg xmlns="http://www.w3.org/2000/svg" 
-         class="h-5 w-5"
-         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1m0-10V4"/>
-    </svg>
-
-    <!-- Texte caché en mobile -->
-    <span class="hidden sm:inline">Déconnexion</span>
-
-</a>
+                    </div>
+                </div>
             @else
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('register') }}" class="flex items-center text-yellow-300 hover:underline">
-                        <img src="{{ asset('img/8e2704d5c0038bae80b51ebf747e7bad.jpg') }}"
-                             class="w-9 h-9 mr-2 object-contain mix-blend-multiply"
-                             alt="user icon">
+                    <a href="{{ route('register') }}"
+                       class="flex items-center gap-2 px-3 py-1.5 rounded-md text-yellow-300 font-medium hover:bg-green-800 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-4a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
                         Inscription
                     </a>
                 </div>
@@ -169,19 +203,80 @@ function toggleUserMenu() {
 <!-- ================= END NAVBAR ================= -->
 
 <!-- ================= CONTENT ================= -->
-<main class="container mx-auto mt-28 px-4 flex-grow">
+<main class="container mx-auto mt-24 px-4 flex-grow">
     @yield('content')
 </main>
 
 <!-- ================= FOOTER ================= -->
 <footer class="bg-green-900 text-white py-6 mt-auto">
-    <div class="container mx-auto px-2 text-center">
-        &copy; {{ date('Y') }} <strong>ERESriskAlert</strong> – ERES-TOGO. Tous droits réservés.
+    <div class="container mx-auto px-2 text-center text-sm text-green-100">
+        &copy; {{ date('Y') }} <strong class="text-white">ERESriskAlert</strong> &ndash; ERES-TOGO. Tous droits réservés.
     </div>
 </footer>
 
-<!-- ================= AJAX SETUP ================= -->
+<!-- ================= SCRIPTS ================= -->
 <script>
+function toggleUserMenu() {
+    const menu = document.getElementById("userMenu");
+    if (!menu) return;
+    menu.classList.toggle("hidden");
+    hideLogoutCoachMark(); // ferme le coach mark si l'utilisateur ouvre le menu lui-même
+}
+
+document.addEventListener('click', function (event) {
+    const menu = document.getElementById('userMenu');
+    if (!menu || menu.classList.contains('hidden')) return;
+
+    const isClickInsideMenu = menu.contains(event.target);
+    const isToggleButton = event.target.closest('button[onclick="toggleUserMenu()"]');
+
+    if (!isClickInsideMenu && !isToggleButton) {
+        menu.classList.add('hidden');
+    }
+});
+
+// ===== Coach mark "pensez à vous déconnecter" =====
+window.showLogoutCoachMark = function (message) {
+    const avatarBtn = document.getElementById('avatarBtn');
+    if (!avatarBtn) return;
+
+    const existing = document.getElementById('logoutCoachMark');
+    if (existing) existing.remove();
+
+    avatarBtn.classList.add('ra-pulse');
+
+    const coach = document.createElement('div');
+    coach.id = 'logoutCoachMark';
+    coach.className = 'ra-coachmark';
+    coach.innerHTML = `
+        <span class="ra-coach-close" onclick="hideLogoutCoachMark()">&times;</span>
+        <strong class="block mb-1">✅ Anomalie envoyée</strong>
+        ${message || "Pensez à vous déconnecter si vous avez terminé."}
+    `;
+
+    avatarBtn.parentElement.appendChild(coach);
+
+    clearTimeout(window._raCoachTimeout);
+    window._raCoachTimeout = setTimeout(hideLogoutCoachMark, 10000);
+};
+
+window.hideLogoutCoachMark = function () {
+    const coach = document.getElementById('logoutCoachMark');
+    if (coach) coach.remove();
+    const avatarBtn = document.getElementById('avatarBtn');
+    if (avatarBtn) avatarBtn.classList.remove('ra-pulse');
+};
+
+document.addEventListener('click', function (event) {
+    const coach = document.getElementById('logoutCoachMark');
+    if (!coach) return;
+    const avatarBtn = document.getElementById('avatarBtn');
+    const isClickInside = coach.contains(event.target) || (avatarBtn && avatarBtn.contains(event.target));
+    if (!isClickInside) {
+        hideLogoutCoachMark();
+    }
+});
+
 $(document).ready(function () {
     $.ajaxSetup({
         headers: {
