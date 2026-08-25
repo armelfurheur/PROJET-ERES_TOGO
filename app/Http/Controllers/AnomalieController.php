@@ -66,7 +66,7 @@ class AnomalieController extends Controller
 
         $anomalie = Anomalie::create($validated);
 
-        Mail::to('zahir@gmail.com')->send(
+        Mail::to('rosine@erestogo.com')->send(
             new SendAnomalieMail($anomalie)
         );
 
